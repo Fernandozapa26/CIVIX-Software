@@ -1,0 +1,29 @@
+# Angular / Node
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+# .NET
+**/bin/
+**/obj/
+**/TestResults/
+*.user
+*.suo
+# Entornos y secretos
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/secrets.json
+# IDE / SO
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+# Backups y datos
+*.bak
+*.mdf
+*.ldf
