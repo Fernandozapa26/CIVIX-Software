@@ -1,0 +1,33 @@
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <h2>CIVIX</h2>
+    <p>Gestión de obras</p>
+
+    <nav>
+      <a
+        routerLink="/cotizaciones"
+        routerLinkActive="active">
+        Cotizaciones
+      </a>
+
+      <a
+        routerLink="/materiales"
+        routerLinkActive="active">
+        Materiales
+      </a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header>
+      <h3>Sistema de Gestión de Obras</h3>
+    </header>
+
+    <section>
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+
+</div>
