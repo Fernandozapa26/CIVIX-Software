@@ -60,7 +60,7 @@ export class Obras implements OnInit {
 
   ngOnInit(): void {
     this.cargar();
-    if (this.nueva()) {
+    if (this.nueva() || window.location.pathname.includes('/nueva')) {
       this.nuevaObra();
     }
   }
