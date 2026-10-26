@@ -24,3 +24,85 @@ No contiene una aplicación Angular ni una API .NET compilables. **No se inventa
 - Londoño: Usuarios, seguridad, arquitectura y coordinación de datos.
 - Paniagua: Materiales, Cotizaciones y UX/UI.
 Todos participan en frontend, backend, pruebas y revisiones.
+
+## 📁 Estructura del Repositorio
+
+```text
+CIVIX/
+│
+├── .editorconfig
+├── .env.example
+├── .gitattributes
+├── .gitignore
+├── CONTRIBUTING.md
+├── README.md
+│
++---backend
+│   └── civix-backend
+│       ├── appsettings.json
+│       ├── civix-backend.csproj
+│       ├── civix-backend.http
+│       ├── civix-backend.slnx
+│       ├── Program.cs
+│       ├── WeatherForecast.cs
+│       ├── Controllers/
+│       │   ├── CotizacionesController.cs
+│       │   ├── MaterialesController.cs
+│       │   └── WeatherForecastController.cs
+│       ├── Data/
+│       │   └── CivixDbContext.cs
+│       ├── DTOs/
+│       │   └── Materiales/
+│       │       └── MaterialesDTO.cs
+│       ├── Models/
+│       │   └── Material.cs
+│       ├── Properties/
+│       │   └── launchSettings.json
+│       └── Services/
+│           └── MaterialesService.cs
+│
++---database
+│   ├── README.md
+│   ├── diagrams/
+│   └── scripts/
+│       ├── 001_creacion_inicial.sql
+│       └── 001_esquema_propuesto.sql
+│
++---docs
+│   ├── 01-formulacion/
+│   ├── 02-gestion-proyecto/
+│   ├── 03-requisitos/
+│   ├── 04-backlog/
+│   ├── 05-diseno-ux-ui/
+│   ├── 06-arquitectura-datos/
+│   ├── 07-pruebas-calidad/
+│   ├── 08-manual-tecnico/
+│   ├── 09-manual-usuario/
+│   ├── 10-cierre-entrega/
+│   ├── adr/
+│   │   └── 0001-decisiones-iniciales.md
+│   └── api/
+│
++---frontend
+│   └── civix-front
+│       ├── angular.json
+│       ├── package.json
+│       ├── tsconfig.json
+│       ├── public/
+│       └── src/
+│           ├── index.html
+│           ├── main.ts
+│           ├── styles.scss
+│           └── app/
+│               ├── app.config.ts
+│               ├── app.routes.ts
+│               ├── app.ts
+│               ├── features/
+│               │   ├── cotizaciones/
+│               │   └── materiales/
+│               └── layouts/
+│                   └── main-layout/
+│
+└── infra
+    ├── README.md
+    └── docker/
