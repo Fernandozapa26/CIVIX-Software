@@ -59,8 +59,10 @@ export class Obras implements OnInit {
   });
 
   ngOnInit(): void {
+    console.log('Obras ngOnInit, path=', window.location.pathname, 'nueva=', this.nueva());
     this.cargar();
     if (this.nueva() || window.location.pathname.includes('/nueva')) {
+      console.log('abriendo formulario');
       this.nuevaObra();
     }
   }
@@ -81,6 +83,7 @@ export class Obras implements OnInit {
   }
 
   protected nuevaObra(): void {
+    console.log('Obras.nuevaObra() llamado');
     this.editandoId.set(null);
     this.form.reset({
       nombre: '',
