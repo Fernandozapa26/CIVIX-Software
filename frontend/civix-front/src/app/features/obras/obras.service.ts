@@ -22,11 +22,11 @@ export class ObrasService {
     return this.http.post<Obra>(API_URL, obra);
   }
 
-  actualizar(id: number, obra: ObraPayload): Observable<void> {
-    return this.http.put<void>(`${API_URL}/${id}`, obra);
+  actualizar(id: number, obra: ObraPayload): Observable<string> {
+    return this.http.put(`${API_URL}/${id}`, obra, { responseType: 'text' });
   }
 
-  eliminar(id: number): Observable<void> {
-    return this.http.delete<void>(`${API_URL}/${id}`);
+  eliminar(id: number): Observable<string> {
+    return this.http.delete(`${API_URL}/${id}`, { responseType: 'text' });
   }
 }
