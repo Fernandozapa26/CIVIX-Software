@@ -67,7 +67,6 @@ public class ObrasController : ControllerBase
         }
     };
 
-    private static int _nextId = 3;
     private static readonly object _lock = new();
 
     [HttpGet]
@@ -98,7 +97,7 @@ public class ObrasController : ControllerBase
 
         lock (_lock)
         {
-            obra.Id = _nextId++;
+            obra.Id = _obras.Count == 0 ? 1 : _obras.Max(o => o.Id) + 1;
             if (string.IsNullOrWhiteSpace(obra.Estado))
                 obra.Estado = "Planificada";
             _obras.Add(obra);
