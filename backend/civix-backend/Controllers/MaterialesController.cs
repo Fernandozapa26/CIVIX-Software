@@ -1,5 +1,7 @@
 
 using Microsoft.AspNetCore.Mvc;
+using civix_backend.DTOs.Materiales;
+using civix_backend.Services;
 
 namespace civix_backend.Controllers
 {
@@ -7,34 +9,32 @@ namespace civix_backend.Controllers
     [Route("api/[controller]")]
     public class MaterialesController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult ObtenerMateriales()
-        {
-            var material = new[]
-            {
-                new
-                {
-                    Id = 1,
-                    Nombre = "Cemento",
-                    Cantidad = 50,
-                    Estado = "En bodega"
-                },
-                new
-                {
-                    Id = 2,
-                    Nombre = "Varilla de acero",
-                    Cantidad = 20,
-                    Estado = "Pedido"
-                }
-            };
+        private readonly MaterialesService _materialesService;
 
-            return Ok(material);
+        public MaterialesController(MaterialesService materialesService)
+        {
+            _materialesService = materialesService;
         }
 
-        [HttpGet("prueba")]
-        public IActionResult MaterialesCivix()
+        [HttpPost]
+        public async Task<IActionResult> GuardarMaterial(
+            [FromBody] MaterialesDTO dto)
         {
-            return Ok("Se abrió correctamente el controlador de materiales");
+            var material = await _materialesService.GuardarMaterialAsync(dto);
+
+            return Ok(new
+            {
+                Mensaje = "Material guardado correctamente",
+                Datos = material
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerMateriales()
+        {
+            var materiales = await _materialesService.ObtenerMaterialesAsync();
+
+            return Ok(materiales);
         }
     }
 }
