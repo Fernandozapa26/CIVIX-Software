@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { CurrencyPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,8 +17,8 @@ import { Obra, ObraPayload } from './obra.model';
 export class Obras implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(ObrasService);
-
-  protected readonly nueva = input<boolean>(false);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly obras = signal<Obra[]>([]);
   protected readonly cargando = signal(false);
@@ -60,9 +61,11 @@ export class Obras implements OnInit {
 
   ngOnInit(): void {
     this.cargar();
-    if (this.nueva() || window.location.pathname.includes('/nueva')) {
-      this.nuevaObra();
-    }
+    this.route.queryParamMap.subscribe((params) => {
+      if (params.get('nueva') === '1') {
+        this.nuevaObra();
+      }
+    });
   }
 
   protected cargar(): void {
@@ -117,6 +120,7 @@ export class Obras implements OnInit {
   protected cancelar(): void {
     this.mostrarFormulario.set(false);
     this.editandoId.set(null);
+    this.router.navigate(['/obras']);
   }
 
   protected guardar(): void {
@@ -150,6 +154,7 @@ export class Obras implements OnInit {
       next: () => {
         this.mostrarFormulario.set(false);
         this.editandoId.set(null);
+        this.router.navigate(['/obras']);
         this.cargar();
       },
       error: () => this.error.set('No se pudo guardar la obra.'),

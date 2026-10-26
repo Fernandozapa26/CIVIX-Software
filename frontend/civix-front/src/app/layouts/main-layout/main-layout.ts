@@ -11,6 +11,6 @@ export class MainLayout {
   private readonly router = inject(Router);
 
   protected nuevaObra(): void {
-    this.router.navigate(['/obras/nueva']);
+    this.router.navigate(['/obras'], { queryParams: { nueva: 1 } });
   }
 }
