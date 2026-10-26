@@ -29,6 +29,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/materiales/materiales')
             .then(m => m.Materiales)
+      },
+      {
+        // Ruta del módulo Obras
+        path: 'obras',
+        loadComponent: () =>
+          import('./features/obras/obras')
+            .then(m => m.Obras)
       }
     ]
   },

@@ -1,0 +1,100 @@
+<section class="obras">
+  <div class="obras__header">
+    <h2>Obras</h2>
+    <button type="button" (click)="nuevaObra()">Nueva obra</button>
+  </div>
+
+  @if (error()) {
+    <p class="obras__error" role="alert">{{ error() }}</p>
+  }
+
+  @if (cargando()) {
+    <p>Cargando obras...</p>
+  } @else {
+    <table class="obras__tabla">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Ubicación</th>
+          <th>Estado</th>
+          <th>Inicio</th>
+          <th>Presupuesto</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (obra of obras(); track obra.id) {
+          <tr>
+            <td>{{ obra.nombre }}</td>
+            <td>{{ obra.ubicacion }}</td>
+            <td>{{ obra.estado }}</td>
+            <td>{{ obra.fechaInicio | date:'shortDate' }}</td>
+            <td>{{ obra.presupuesto | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+            <td>
+              <button type="button" (click)="editar(obra)">Editar</button>
+              <button type="button" (click)="eliminar(obra)">Eliminar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6">No hay obras registradas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (mostrarFormulario()) {
+    <form class="obras__form" [formGroup]="form" (ngSubmit)="guardar()">
+      <h3>{{ editandoId() === null ? 'Nueva obra' : 'Editar obra' }}</h3>
+
+      <label>
+        Nombre
+        <input type="text" formControlName="nombre" />
+        @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+          <small>El nombre es obligatorio.</small>
+        }
+      </label>
+
+      <label>
+        Descripción
+        <textarea formControlName="descripcion"></textarea>
+      </label>
+
+      <label>
+        Ubicación
+        <input type="text" formControlName="ubicacion" />
+      </label>
+
+      <label>
+        Fecha de inicio
+        <input type="date" formControlName="fechaInicio" />
+      </label>
+
+      <label>
+        Fecha de fin estimada
+        <input type="date" formControlName="fechaFinEstimada" />
+      </label>
+
+      <label>
+        Estado
+        <select formControlName="estado">
+          <option value="Planificada">Planificada</option>
+          <option value="En ejecución">En ejecución</option>
+          <option value="Pausada">Pausada</option>
+          <option value="Finalizada">Finalizada</option>
+        </select>
+      </label>
+
+      <label>
+        Presupuesto
+        <input type="number" formControlName="presupuesto" min="0" />
+      </label>
+
+      <div class="obras__form-actions">
+        <button type="submit">Guardar</button>
+        <button type="button" (click)="cancelar()">Cancelar</button>
+      </div>
+    </form>
+  }
+</section>
