@@ -1,47 +1,82 @@
-<section class="obras">
-  <div class="obras__header">
-    <h2>Obras</h2>
-    <button type="button" (click)="nuevaObra()">Nueva obra</button>
+<section class="dashboard">
+  <div class="dashboard__intro">
+    <div>
+      <p class="dashboard__eyebrow">PORTAFOLIO DE PROYECTOS</p>
+      <h1 class="dashboard__title">Obras</h1>
+      <p class="dashboard__desc">Consulta y administra {{ obras().length }} proyectos registrados.</p>
+    </div>
+    <div class="dashboard__search">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input
+        type="text"
+        placeholder="Buscar obra, cliente o ciudad..."
+        [value]="busqueda()"
+        (input)="busqueda.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <div class="dashboard__filters">
+    @for (tab of ['Todas','En ejecución','En planeación','Finalizada']; track tab) {
+      <button
+        type="button"
+        class="filter-tab"
+        [class.filter-tab--active]="filtro() === tab"
+        (click)="filtro.set(tab)"
+      >{{ tab }}</button>
+    }
   </div>
 
   @if (error()) {
-    <p class="obras__error" role="alert">{{ error() }}</p>
+    <p class="dashboard__error" role="alert">{{ error() }}</p>
   }
 
   @if (cargando()) {
     <p>Cargando obras...</p>
   } @else {
-    <table class="obras__tabla">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Ubicación</th>
-          <th>Estado</th>
-          <th>Inicio</th>
-          <th>Presupuesto</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (obra of obras(); track obra.id) {
-          <tr>
-            <td>{{ obra.nombre }}</td>
-            <td>{{ obra.ubicacion }}</td>
-            <td>{{ obra.estado }}</td>
-            <td>{{ obra.fechaInicio | date:'shortDate' }}</td>
-            <td>{{ obra.presupuesto | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
-            <td>
-              <button type="button" (click)="editar(obra)">Editar</button>
-              <button type="button" (click)="eliminar(obra)">Eliminar</button>
-            </td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="6">No hay obras registradas.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+    <div class="dashboard__grid">
+      @for (obra of obrasFiltradas(); track obra.id) {
+        <article class="project-card">
+          <div class="project-card__top">
+            <span class="project-card__badge">{{ (obra.id < 10 ? '0' : '') + obra.id }}</span>
+            <span class="project-card__status" [class]="'status--' + slug(obra.estado)">{{ estadoLabel(obra.estado) }}</span>
+          </div>
+          <h3 class="project-card__title">{{ obra.nombre }}</h3>
+          <p class="project-card__location">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            {{ obra.ubicacion }}
+          </p>
+
+          <div class="project-card__progress">
+            <div class="project-card__progress-labels">
+              <span>AVANCE FÍSICO</span>
+              <span class="project-card__progress-value">{{ obra.avance }}%</span>
+            </div>
+            <div class="project-card__progress-bar">
+              <div class="project-card__progress-fill" [style.width.%]="obra.avance"></div>
+            </div>
+          </div>
+
+          <div class="project-card__footer">
+            <div>
+              <span class="project-card__meta-label">PRESUPUESTO</span>
+              <span class="project-card__meta-value">{{ obra.presupuesto | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+            <div>
+              <span class="project-card__meta-label">PERSONAL</span>
+              <span class="project-card__meta-value">{{ obra.personal }} personas</span>
+            </div>
+          </div>
+
+          <div class="project-card__actions">
+            <button type="button" (click)="editar(obra)">Editar</button>
+            <button type="button" (click)="eliminar(obra)">Eliminar</button>
+          </div>
+        </article>
+      } @empty {
+        <p class="dashboard__empty">No hay obras que coincidan con los filtros.</p>
+      }
+    </div>
   }
 
   @if (mostrarFormulario()) {
@@ -51,9 +86,11 @@
       <label>
         Nombre
         <input type="text" formControlName="nombre" />
-        @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
-          <small>El nombre es obligatorio.</small>
-        }
+      </label>
+
+      <label>
+        Cliente
+        <input type="text" formControlName="cliente" />
       </label>
 
       <label>
@@ -80,6 +117,7 @@
         Estado
         <select formControlName="estado">
           <option value="Planificada">Planificada</option>
+          <option value="En planeación">En planeación</option>
           <option value="En ejecución">En ejecución</option>
           <option value="Pausada">Pausada</option>
           <option value="Finalizada">Finalizada</option>
@@ -89,6 +127,16 @@
       <label>
         Presupuesto
         <input type="number" formControlName="presupuesto" min="0" />
+      </label>
+
+      <label>
+        Avance (%)
+        <input type="number" formControlName="avance" min="0" max="100" />
+      </label>
+
+      <label>
+        Personal
+        <input type="number" formControlName="personal" min="0" />
       </label>
 
       <div class="obras__form-actions">

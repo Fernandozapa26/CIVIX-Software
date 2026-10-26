@@ -1,47 +1,81 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-      {
-    // Componente principal que contiene el menú
+  {
     path: '',
     loadComponent: () =>
       import('./layouts/main-layout/main-layout')
         .then(m => m.MainLayout),
-
-    // Páginas que se mostrarán dentro del menú
     children: [
+      { path: '', redirectTo: 'obras', pathMatch: 'full' },
       {
-        // Al entrar a la raíz, abrir Cotizaciones
-        path: '',
-        redirectTo: 'cotizaciones',
-        pathMatch: 'full'
-      },
-      {
-        // Ruta del módulo Cotizaciones
-        path: 'cotizaciones',
-        loadComponent: () =>
-          import('./features/cotizaciones/cotizaciones')
-            .then(m => m.Cotizaciones)
-      },
-      {
-        // Ruta del módulo Materiales
-        path: 'materiales',
-        loadComponent: () =>
-          import('./features/materiales/materiales')
-            .then(m => m.Materiales)
-      },
-      {
-        // Ruta del módulo Obras
         path: 'obras',
         loadComponent: () =>
           import('./features/obras/obras')
-            .then(m => m.Obras)
-      }
-    ]
+            .then(m => m.Obras),
+      },
+      {
+        path: 'obras/nueva',
+        loadComponent: () =>
+          import('./features/obras/obras')
+            .then(m => m.Obras),
+        data: { nueva: true },
+      },
+      {
+        path: 'resumen',
+        loadComponent: () =>
+          import('./features/placeholder/placeholder')
+            .then(m => m.Placeholder),
+        data: { title: 'Resumen' },
+      },
+      {
+        path: 'personal',
+        loadComponent: () =>
+          import('./features/placeholder/placeholder')
+            .then(m => m.Placeholder),
+        data: { title: 'Personal' },
+      },
+      {
+        path: 'presupuesto',
+        loadComponent: () =>
+          import('./features/placeholder/placeholder')
+            .then(m => m.Placeholder),
+        data: { title: 'Presupuesto' },
+      },
+      {
+        path: 'inventario',
+        loadComponent: () =>
+          import('./features/placeholder/placeholder')
+            .then(m => m.Placeholder),
+        data: { title: 'Inventario' },
+      },
+      {
+        path: 'reportes',
+        loadComponent: () =>
+          import('./features/placeholder/placeholder')
+            .then(m => m.Placeholder),
+        data: { title: 'Reportes' },
+      },
+      {
+        path: 'configuracion',
+        loadComponent: () =>
+          import('./features/placeholder/placeholder')
+            .then(m => m.Placeholder),
+        data: { title: 'Configuración' },
+      },
+      {
+        path: 'cotizaciones',
+        loadComponent: () =>
+          import('./features/cotizaciones/cotizaciones')
+            .then(m => m.Cotizaciones),
+      },
+      {
+        path: 'materiales',
+        loadComponent: () =>
+          import('./features/materiales/materiales')
+            .then(m => m.Materiales),
+      },
+    ],
   },
-  {
-    // Si la ruta no existe, volver a Cotizaciones
-    path: '**',
-    redirectTo: 'cotizaciones'
-  }
+  { path: '**', redirectTo: 'obras' },
 ];

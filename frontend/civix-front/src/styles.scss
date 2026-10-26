@@ -1,1 +1,31 @@
-/* You can add global styles to this file, and also import other style files */
+@use 'sass:color';
+
+:root {
+  --civix-sidebar: #0d222a;
+  --civix-bg: #f8f8f6;
+  --civix-card: #ffffff;
+  --civix-accent: #e5941c;
+  --civix-text: #1a1a1a;
+  --civix-muted: #6b7280;
+  --civix-border: #e5e7eb;
+  --civix-success: #2e7d32;
+  --civix-info: #1565c0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--civix-text);
+  background: var(--civix-bg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
