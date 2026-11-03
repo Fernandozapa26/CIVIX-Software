@@ -36,5 +36,62 @@ namespace civix_backend.Controllers
 
             return Ok(materiales);
         }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> ObtenerMaterialPorId(int id)
+        {
+            var material = await _materialesService.ObtenerMaterialPorIdAsync(id);
+
+            if (material == null)
+            {
+                return NotFound(new
+                {
+                    Mensaje = "Material no encontrado"
+                });
+            }
+
+            return Ok(material);
+
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> ActualizarMaterial(int id, [FromBody] MaterialesDTO dto)
+        {
+            var material = await _materialesService.ActualizarMaterialAsync(id, dto);
+
+            if (material == null)
+            {
+                return NotFound(new
+                {
+                    Mensaje = "Material no encontrado"
+                });
+            }
+
+            return Ok(new
+            {
+                Mensaje = "Material actualizado correctamente",
+                Datos = material
+            });
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DesactivarMaterial(int id)
+        {
+            var desactivado = await _materialesService.DesactivarMaterialAsync(id);
+
+            if (!desactivado)
+            {
+                return NotFound(new
+                {
+                    Mensaje = "El material no existe o ya está desactivado"
+                });
+            }
+
+            return Ok(new
+            {
+                Mensaje = "Material desactivado correctamente"
+            });
+        }
+
     }
 }
