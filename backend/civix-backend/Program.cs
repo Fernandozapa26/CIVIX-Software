@@ -1,20 +1,28 @@
+
 using Microsoft.EntityFrameworkCore;
 using civix_backend.Data;
 using civix_backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de la conexión a SQL Server
 builder.Services.AddDbContext<CivixDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("CivixConnection")
     )
 );
 
-// Registro del servicio de materiales
 builder.Services.AddScoped<MaterialesService>();
 
-// Configuración de controladores
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AngularCivix", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
@@ -26,6 +34,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AngularCivix");
 
 app.UseAuthorization();
 
