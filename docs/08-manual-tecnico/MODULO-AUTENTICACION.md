@@ -163,10 +163,10 @@ Aunque `register` es `[AllowAnonymous]`, el middleware de autenticación igual l
 
 ### 3.7 Archivos modificados
 
-**`Data/CivixDbContext.cs`**
+**`Data/CivixDbContext.cs` y `Data/Configurations/`**
 - Se agregaron los DbSets `Usuarios`, `Roles`, `UsuariosRoles` y `ObraUsuarios`.
-- En `OnModelCreating` se mapea cada uno a su tabla real (`ToTable("Usuarios", "dbo")`), con las llaves compuestas, las longitudes de las columnas y las relaciones, usando los mismos nombres de FK del script.
-- No crea tablas: solo describe las que ya existen.
+- Siguiendo la convención del equipo (`ApplyConfigurationsFromAssembly`), cada tabla tiene su clase de configuración: `UsuarioConfig`, `RolConfig`, `UsuarioRolConfig` y `ObraUsuarioConfig`. Cada una la mapea a su tabla real (`ToTable("Usuarios", "dbo")`), con las llaves compuestas, las longitudes de las columnas y las relaciones, usando los mismos nombres de FK del script.
+- No crean tablas: solo describen las que ya existen.
 
 **`Program.cs`**: se agregaron, en este orden:
 1. Lectura y validación de `JwtOptions`, con la clave temporal en desarrollo.
@@ -174,7 +174,7 @@ Aunque `register` es `[AllowAnonymous]`, el middleware de autenticación igual l
 3. `AddAuthentication().AddJwtBearer(...)` para validar emisor, audiencia, firma y vencimiento.
    - `MapInboundClaims = false` conserva los nombres cortos de los claims.
    - `RoleClaimType = "role"` hace que `[Authorize(Roles = ...)]` lea el claim correcto.
-4. Política CORS para `http://localhost:4200`, configurable en `Cors:OrigenesPermitidos`.
+4. Política CORS para `http://localhost:4200`, configurable en `Cors:OrigenesPermitidos`. Reemplaza la política fija `AngularCivix` que existía en `main`.
 5. Pipeline: `UseCors` → `UseAuthentication` → `UseAuthorization`. **El orden importa:** la autenticación debe ir antes que la autorización.
 
 **`civix-backend.csproj`**: se agregó el paquete `Microsoft.AspNetCore.Authentication.JwtBearer` 10.0.13, la misma línea de versión que `Microsoft.AspNetCore.OpenApi`.
@@ -238,7 +238,7 @@ Interceptor funcional, registrado en `app.config.ts` con `withInterceptors`.
 ### 5.5 `app/core/guards/auth.guard.ts`
 - **`authGuard`:**
   - Sin sesión: redirige a `/login?returnUrl=/ruta-pedida`.
-  - Con sesión pero sin el rol que exige `data.roles`: redirige a `/cotizaciones`, que todos los roles pueden ver.
+  - Con sesión pero sin el rol que exige `data.roles`: redirige a `/inicio`, que todos los roles pueden ver.
 - **`guestGuard`:** si ya hay sesión, no deja volver a `/login` ni a `/registro`.
 
 ### 5.6 `app/core/utils/http-error.ts`
@@ -258,7 +258,7 @@ Pantalla dividida del prototipo de Figma.
   - Formulario reactivo tipado (`NonNullableFormBuilder`) con validadores `required` y `email`.
   - Signals `enviando` y `error`.
   - `usarCuenta()`: al pulsar una tarjeta de prueba, llena el formulario e inicia sesión de inmediato.
-  - Después de iniciar sesión navega al `returnUrl` (solo si es una ruta interna) o a `/cotizaciones`.
+  - Después de iniciar sesión navega al `returnUrl` (solo si es una ruta interna) o a `/inicio`.
 - **`login.html`**
   - Etiqueta "Acceso seguro", título, campos con iconos y botón naranja.
   - Enlace al registro y bloque "Cuentas de prueba" con las 3 tarjetas.
@@ -282,12 +282,11 @@ Parcial de Sass que comparten login y registro: tipografía del encabezado, camp
   - Después del login se entra a `/inicio` (`RUTA_INICIO` en `auth.service.ts`).
 - **`app.config.ts`:** `provideHttpClient(withFetch(), withInterceptors([authInterceptor]))`.
 - **`app.html`:** se eliminó la página de bienvenida de Angular. Antes se mostraba encima de todas las rutas; ahora el archivo solo tiene `<router-outlet />`.
-- **`layouts/main-layout/*`:**
-  - Muestra el nombre y el rol del usuario, la marca "Solo consulta" para el Cliente y el botón **Cerrar sesión**.
-  - El enlace a Materiales solo aparece para el Administrador y el Ingeniero.
-  - Se agregaron estilos básicos a la barra lateral, que no tenía.
+- **`layouts/main-layout/*`:** se conserva el diseño del menú lateral hecho por el equipo, conectado a la sesión.
+  - El perfil muestra el nombre y el rol reales del usuario (con "Solo consulta" para el Cliente) y un botón **Cerrar sesión**.
+  - Cada opción del menú declara `roles`, y `menuItems` es un `computed()` que solo muestra las permitidas: Materiales para Administrador e Ingeniero, Usuarios solo para Administrador.
 - **`index.html`:** `lang="es"`, título de la pestaña y la fuente Manrope de Google Fonts.
-- **`styles.scss`:** colores de marca como variables CSS (`--civix-naranja`, `--civix-tinta`…), que usan todos los componentes.
+- **`styles.scss`:** se conservan los estilos globales del equipo (Bootstrap, `--civix-primary`…) y se agregan las variables de las pantallas de login y registro (`--civix-naranja`, `--civix-tinta`…). La fuente Manrope se aplica solo dentro de `AuthLayout`.
   - El naranja de Figma (`#f5a623`) se usa en botones y fondos.
   - Para textos pequeños sobre fondo claro se usa `#a15c00`, porque el naranja original no cumple el contraste mínimo de WCAG AA.
 - **`angular.json`:** el aviso de tamaño de estilos por componente pasó de 4 kB a 6 kB, porque el login supera un poco los 4 kB. El límite de error de 8 kB no cambia.
@@ -319,8 +318,8 @@ npm start                # http://localhost:4200 -> redirige a /login
 ## 7. Pruebas manuales sugeridas
 
 1. Abrir `http://localhost:4200`. Debe redirigir a `/login`.
-2. Pulsar la tarjeta **Administrador**. Debe entrar a Cotizaciones y ver Materiales en el menú.
-3. Cerrar sesión y entrar como **Cliente**. No debe aparecer Materiales. Escribir `/materiales` en la barra de direcciones debe llevar de vuelta a Cotizaciones.
+2. Pulsar la tarjeta **Administrador**. Debe entrar a Inicio y ver Materiales y Usuarios en el menú.
+3. Cerrar sesión y entrar como **Cliente**. No deben aparecer Materiales ni Usuarios. Escribir `/materiales` en la barra de direcciones debe llevar de vuelta a Inicio.
 4. Intentar entrar con una contraseña incorrecta. Debe aparecer "Correo o contraseña incorrectos.".
 5. Registrar una cuenta nueva. Debe quedar con sesión iniciada y el rol Cliente.
 6. Registrar otra vez el mismo correo. Debe aparecer "Ya existe una cuenta registrada con ese correo.".
