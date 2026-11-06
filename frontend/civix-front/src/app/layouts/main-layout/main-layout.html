@@ -24,7 +24,7 @@
 
       <nav class="menu">
 
-        @for (item of menuItems; track item.route) {
+        @for (item of menuItems(); track item.route) {
 
         <a [routerLink]="item.route" routerLinkActive="active">
           <i class="bi menu-icon" [class]="item.icon"></i>
@@ -52,22 +52,12 @@
 
       </div>
 
-      } @else {
-
-      <div class="user-profile">
-
-        <div class="user-avatar">
-          <i class="bi bi-person-circle"></i>
-        </div>
-
-        <div class="user-info">
-          <strong>Invitado</strong>
-          <span>Sin sesión iniciada</span>
-        </div>
-
-      </div>
-
       }
+
+      <button class="logout-btn" type="button" (click)="cerrarSesion()">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span>Cerrar sesión</span>
+      </button>
 
     </div>
   </aside>

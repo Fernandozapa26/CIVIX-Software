@@ -1,10 +1,13 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using civix_backend.Models;
 
 namespace civix_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = RolesSistema.Todos)]
     public class CotizacionesController : ControllerBase
     {
         [HttpGet]

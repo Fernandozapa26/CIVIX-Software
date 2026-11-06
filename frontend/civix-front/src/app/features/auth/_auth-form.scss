@@ -1,0 +1,164 @@
+// Estilos compartidos por login y registro (tarjeta del formulario del prototipo de Figma).
+// Se importa con @use desde login.scss y register.scss.
+
+:host {
+  display: block;
+  width: 100%;
+  max-width: 34.5rem;
+}
+
+.encabezado {
+  margin-bottom: 2.5rem;
+}
+
+.etiqueta {
+  margin: 0 0 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--civix-naranja-texto);
+}
+
+.titulo {
+  margin: 0 0 1.25rem;
+  font-size: clamp(2.1rem, 3.3vw, 2.9rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  color: var(--civix-tinta);
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--civix-texto-suave);
+}
+
+.campo {
+  margin-bottom: 1.6rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--civix-tinta);
+  }
+}
+
+.entrada {
+  position: relative;
+
+  svg {
+    position: absolute;
+    top: 50%;
+    left: 1.1rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    transform: translateY(-50%);
+    color: var(--civix-texto-suave);
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    height: 3.45rem;
+    padding: 0 1rem 0 3.2rem;
+    border: 1px solid var(--civix-borde);
+    border-radius: 0;
+    background: #fff;
+    font: inherit;
+    font-size: 0.98rem;
+    color: var(--civix-tinta);
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &::placeholder {
+      color: #737c82;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--civix-naranja);
+      box-shadow: 0 0 0 3px rgb(245 166 35 / 0.3);
+    }
+
+    &[aria-invalid='true'] {
+      border-color: var(--civix-error);
+    }
+  }
+}
+
+.error-campo {
+  margin: 0.45rem 0 0;
+  font-size: 0.84rem;
+  color: var(--civix-error);
+}
+
+.alerta {
+  margin: 0 0 1.5rem;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--civix-error);
+  background: #fdecea;
+  font-size: 0.92rem;
+  color: #8a1c13;
+
+  &--info {
+    border-left-color: var(--civix-naranja);
+    background: #fdf3e1;
+    color: #5c3b00;
+  }
+}
+
+.boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  height: 3.75rem;
+  margin-top: 0.5rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--civix-naranja);
+  font: inherit;
+  font-size: 1.15rem;
+  color: var(--civix-tinta);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  svg {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  &:hover:not(:disabled) {
+    background: #e8961a;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--civix-tinta);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: progress;
+  }
+}
+
+.cambio {
+  margin: 1.75rem 0 0;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--civix-texto-suave);
+
+  a {
+    font-weight: 700;
+    color: var(--civix-tinta);
+    text-underline-offset: 3px;
+  }
+}

@@ -18,10 +18,20 @@ namespace civix_backend.Data
 
         public DbSet<CotizacionDetalle> CotizacionDetalles { get; set; } = null!;
 
+        // --- Usuarios y seguridad ---
+        public DbSet<Usuario> Usuarios { get; set; } = null!;
+
+        public DbSet<Rol> Roles { get; set; } = null!;
+
+        public DbSet<UsuarioRol> UsuariosRoles { get; set; } = null!;
+
+        public DbSet<ObraUsuario> ObraUsuarios { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // Aplica todas las clases de Data/Configurations (MaterialConfig, UsuarioConfig, etc.)
             modelBuilder.ApplyConfigurationsFromAssembly(
                 typeof(CivixDbContext).Assembly
             );

@@ -144,6 +144,29 @@ $text: #102d36;
   }
 }
 
+// CERRAR SESIÓN
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #29444d;
+  background: transparent;
+  color: #a6bbc1;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $accent;
+    color: $accent;
+  }
+}
+
 // CONTENIDO PRINCIPAL
 .main-container {
   flex: 1;
@@ -210,7 +233,8 @@ $text: #102d36;
 
   .logo-text,
   .menu-title,
-  .user-info {
+  .user-info,
+  .logout-btn span {
     display: none;
   }
 
