@@ -64,6 +64,12 @@ export const routes: Routes = [
         data: { title: 'Configuración' },
       },
       {
+        path: 'avances',
+        loadComponent: () =>
+          import('./features/avances/avances')
+            .then(m => m.Avances),
+      },
+      {
         path: 'cotizaciones',
         loadComponent: () =>
           import('./features/cotizaciones/cotizaciones')
