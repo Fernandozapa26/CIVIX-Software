@@ -1,0 +1,226 @@
+<section class="container-fluid py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="page-title mb-1">Nueva cotización</h1>
+      <p class="text-muted mb-0">
+        Registra la información general y los detalles de la cotización.
+      </p>
+    </div>
+
+    <a routerLink="/cotizaciones" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-2"></i>
+      Volver
+    </a>
+  </div>
+
+  <form [formGroup]="formulario" (ngSubmit)="guardar()">
+
+    <div class="card border-0 shadow-sm mb-4">
+
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0 fw-semibold">
+          <i class="bi bi-file-earmark-text me-2"></i>
+          Información general
+        </h5>
+      </div>
+
+      <div class="card-body">
+        <div class="row g-3">
+          <!--<div class="col-md-6">
+            <label for="clienteId" class="form-label fw-semibold">
+              Cliente <span class="text-danger">*</span>
+            </label>
+            <select
+              id="clienteId"
+              class="form-select"
+              formControlName="clienteId"
+              [class.is-invalid]="formulario.controls.clienteId.invalid &&
+                formulario.controls.clienteId.touched"
+            >
+              <option [ngValue]="null">Seleccionar cliente</option>
+            </select>
+
+            <div class="invalid-feedback">
+              Debes seleccionar un cliente.
+            </div>
+          </div>-->
+
+          <div class="col-12">
+            <label for="descripcion" class="form-label fw-semibold">
+              Descripción del proyecto
+              <span class="text-danger">*</span>
+            </label>
+
+            <textarea
+              id="descripcion"
+              class="form-control"
+              formControlName="descripcion"
+              rows="3"
+              maxlength="500"
+              placeholder="Describe el trabajo que se va a cotizar"
+              [class.is-invalid]="formulario.controls.descripcion.invalid &&
+                formulario.controls.descripcion.touched"
+            ></textarea>
+
+            <div class="invalid-feedback">
+              Ingresa una descripción del proyecto.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+
+        <h5 class="mb-0 fw-semibold">
+          <i class="bi bi-list-check me-2"></i>
+          Detalles de la cotización
+        </h5>
+
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-sm"
+          (click)="agregarItem()"
+        >
+          <i class="bi bi-plus-lg me-1"></i>
+          Agregar ítem
+        </button>
+
+      </div>
+
+      <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+          <table class="table table-bordered align-middle mb-0">
+
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">Descripción</th>
+                <th style="width: 130px;">Cantidad</th>
+                <th style="width: 180px;">Valor unitario</th>
+                <th style="width: 180px;">Subtotal</th>
+                <th style="width: 80px;" class="text-center">
+                  Acción
+                </th>
+              </tr>
+            </thead>
+
+            <tbody formArrayName="detalles">
+
+              @for (item of detalles.controls; track item; let i = $index) {
+
+                <tr [formGroupName]="i">
+
+                  <td>
+                    <input
+                      type="text"
+                      class="form-control"
+                      formControlName="descripcion"
+                      placeholder="Material, producto o servicio"
+                      [class.is-invalid]="item.get('descripcion')?.invalid &&
+                        item.get('descripcion')?.touched"
+                    >
+                  </td>
+
+                  <td>
+                    <input
+                      type="number"
+                      class="form-control"
+                      formControlName="cantidad"
+                      min="0.01"
+                      step="0.01"
+                      [class.is-invalid]="item.get('cantidad')?.invalid &&
+                        item.get('cantidad')?.touched"
+                    >
+                  </td>
+
+                  <td>
+                    <input
+                      type="number"
+                      class="form-control"
+                      formControlName="valorUnitario"
+                      min="0"
+                      step="0.01"
+                      [class.is-invalid]="item.get('valorUnitario')?.invalid &&
+                        item.get('valorUnitario')?.touched"
+                    >
+                  </td>
+
+                  <td class="fw-semibold text-nowrap">
+                    {{ calcularSubtotal(i).toLocaleString('es-CO', {
+                      style: 'currency',
+                      currency: 'COP',
+                      maximumFractionDigits: 2
+                    }) }}
+                  </td>
+
+                  <td class="text-center">
+                    <button
+                      type="button"
+                      class="btn btn-outline-danger btn-sm"
+                      (click)="eliminarItem(i)"
+                      [disabled]="detalles.length === 1"
+                      aria-label="Eliminar ítem"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+
+      <div class="card-body">
+
+        <div class="d-flex justify-content-end align-items-center gap-4">
+
+          <span class="text-muted fw-semibold">
+            Total de la cotización
+          </span>
+
+          <span class="fs-4 fw-bold text-dark">
+            {{ calcularTotal().toLocaleString('es-CO', {
+              style: 'currency',
+              currency: 'COP',
+              maximumFractionDigits: 2
+            }) }}
+          </span>
+
+        </div>
+
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+
+      <a routerLink="/cotizaciones" class="btn btn-outline-secondary">
+        Cancelar
+      </a>
+
+      <button type="submit" class="btn btn-warning fw-semibold">
+        <i class="bi bi-check-lg me-2"></i>
+        Guardar cotización
+      </button>
+
+    </div>
+
+  </form>
+
+</section>
