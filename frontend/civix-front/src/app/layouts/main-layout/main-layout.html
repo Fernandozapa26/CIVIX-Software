@@ -1,23 +1,32 @@
-
 <div class="layout">
 
   <aside class="sidebar">
     <h2>CIVIX</h2>
     <p>Gestión de obras</p>
 
-    <nav>
+    <nav aria-label="Menú principal">
       <a
         routerLink="/cotizaciones"
         routerLinkActive="active">
         Cotizaciones
       </a>
 
-      <a
-        routerLink="/materiales"
-        routerLinkActive="active">
-        Materiales
-      </a>
+      @if (puedeVerMateriales()) {
+        <a
+          routerLink="/materiales"
+          routerLinkActive="active">
+          Materiales
+        </a>
+      }
     </nav>
+
+    @if (usuario(); as u) {
+      <div class="sesion">
+        <p class="sesion__nombre">{{ u.nombre }}</p>
+        <p class="sesion__rol">{{ rolesTexto() }}{{ esSoloLectura() ? ' · Solo consulta' : '' }}</p>
+        <button type="button" class="sesion__salir" (click)="cerrarSesion()">Cerrar sesión</button>
+      </div>
+    }
   </aside>
 
   <main class="content">

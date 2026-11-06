@@ -1,0 +1,143 @@
+.auth {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 4.5rem 3.75rem 4rem;
+  color: #fff;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 85% 15%, rgb(255 255 255 / 0.08), transparent 55%),
+    radial-gradient(ellipse at 10% 90%, rgb(245 166 35 / 0.1), transparent 50%),
+    linear-gradient(160deg, #24444e 0%, #17323b 50%, #0d2028 100%);
+
+  // Retícula tenue tipo plano arquitectónico
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+  }
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  &__logo {
+    display: grid;
+    place-items: center;
+    width: 3.1rem;
+    height: 3.1rem;
+    border-radius: 2px;
+    background: var(--civix-naranja);
+    color: var(--civix-tinta);
+
+    svg {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
+  }
+
+  &__texto {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__nombre {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  &__lema {
+    margin-top: 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.7);
+  }
+}
+
+.hero__contenido {
+  max-width: 46rem;
+}
+
+.hero__etiqueta {
+  margin: 0 0 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--civix-naranja);
+}
+
+.hero__titulo {
+  margin: 0 0 1.75rem;
+  font-size: clamp(2.5rem, 4.2vw, 3.9rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.05em;
+}
+
+.hero__texto {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: rgb(255 255 255 / 0.8);
+}
+
+.hero__pie {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.6);
+}
+
+.panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 4.5rem;
+  background: var(--civix-fondo);
+}
+
+@media (max-width: 960px) {
+  .auth {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    padding: 2rem 1.5rem;
+    gap: 0;
+
+    .hero__contenido,
+    .hero__pie {
+      display: none;
+    }
+  }
+
+  .panel {
+    padding: 2.5rem 1.25rem 3rem;
+    align-items: flex-start;
+  }
+}

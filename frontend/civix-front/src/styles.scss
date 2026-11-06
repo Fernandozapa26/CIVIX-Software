@@ -1,1 +1,32 @@
-/* You can add global styles to this file, and also import other style files */
+/* Estilos globales y colores de marca CIVIX (tomados del prototipo de Figma). */
+
+:root {
+  --civix-naranja: #f5a623;
+  /* Naranja más oscuro para textos pequeños sobre fondo claro (contraste WCAG AA). */
+  --civix-naranja-texto: #a15c00;
+  --civix-tinta: #12222b;
+  --civix-texto-suave: #5b666d;
+  --civix-fondo: #f3f2ee;
+  --civix-borde: #d9dcdd;
+  --civix-error: #c0392b;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Manrope', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--civix-tinta);
+  background: var(--civix-fondo);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

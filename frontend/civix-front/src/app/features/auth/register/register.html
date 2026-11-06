@@ -1,0 +1,94 @@
+<header class="encabezado">
+  <p class="etiqueta">Nueva cuenta</p>
+  <h1 class="titulo">Crea tu cuenta</h1>
+  <p class="subtitulo">Regístrate para consultar la información de tus obras en CIVIX.</p>
+</header>
+
+@if (error(); as mensaje) {
+  <p class="alerta" role="alert">{{ mensaje }}</p>
+}
+
+<form [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="campo">
+    <label for="registro-nombre">Nombre completo</label>
+    <div class="entrada">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+      </svg>
+      <input id="registro-nombre" type="text" formControlName="nombre" placeholder="Tu nombre"
+        autocomplete="name" [attr.aria-invalid]="campoInvalido('nombre')"
+        aria-describedby="registro-nombre-error" />
+    </div>
+    @if (campoInvalido('nombre')) {
+      <p class="error-campo" id="registro-nombre-error">{{ mensajeCampo('nombre') }}</p>
+    }
+  </div>
+
+  <div class="campo">
+    <label for="registro-correo">Correo electrónico</label>
+    <div class="entrada">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m3 7 9 6 9-6" />
+      </svg>
+      <input id="registro-correo" type="email" formControlName="correo"
+        placeholder="nombre@correo.com" autocomplete="email"
+        [attr.aria-invalid]="campoInvalido('correo')" aria-describedby="registro-correo-error" />
+    </div>
+    @if (campoInvalido('correo')) {
+      <p class="error-campo" id="registro-correo-error">{{ mensajeCampo('correo') }}</p>
+    }
+  </div>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="registro-password">Contraseña</label>
+      <div class="entrada">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+        <input id="registro-password" type="password" formControlName="password"
+          placeholder="Mínimo 8 caracteres" autocomplete="new-password"
+          [attr.aria-invalid]="campoInvalido('password')"
+          aria-describedby="registro-password-error" />
+      </div>
+      @if (campoInvalido('password')) {
+        <p class="error-campo" id="registro-password-error">{{ mensajeCampo('password') }}</p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="registro-confirmar">Confirmar contraseña</label>
+      <div class="entrada">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+        <input id="registro-confirmar" type="password" formControlName="confirmar"
+          placeholder="Repite la contraseña" autocomplete="new-password"
+          [attr.aria-invalid]="campoInvalido('confirmar')"
+          aria-describedby="registro-confirmar-error" />
+      </div>
+      @if (campoInvalido('confirmar')) {
+        <p class="error-campo" id="registro-confirmar-error">{{ mensajeCampo('confirmar') }}</p>
+      }
+    </div>
+  </div>
+
+  <button class="boton" type="submit" [disabled]="enviando()">
+    {{ enviando() ? 'Creando cuenta…' : 'Crear cuenta' }}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </svg>
+  </button>
+</form>
+
+<p class="cambio">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p>
