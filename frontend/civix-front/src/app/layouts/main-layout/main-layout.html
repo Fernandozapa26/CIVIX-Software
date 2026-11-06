@@ -1,42 +1,101 @@
-<div class="layout">
+<div class="app-layout">
 
   <aside class="sidebar">
-    <h2>CIVIX</h2>
-    <p>Gestión de obras</p>
 
-    <nav aria-label="Menú principal">
-      <a
-        routerLink="/cotizaciones"
-        routerLinkActive="active">
-        Cotizaciones
-      </a>
+    <div class="sidebar-logo">
 
-      @if (puedeVerMateriales()) {
-        <a
-          routerLink="/materiales"
-          routerLinkActive="active">
-          Materiales
-        </a>
-      }
-    </nav>
-
-    @if (usuario(); as u) {
-      <div class="sesion">
-        <p class="sesion__nombre">{{ u.nombre }}</p>
-        <p class="sesion__rol">{{ rolesTexto() }}{{ esSoloLectura() ? ' · Solo consulta' : '' }}</p>
-        <button type="button" class="sesion__salir" (click)="cerrarSesion()">Cerrar sesión</button>
+      <div class="logo-icon">
+        <i class="bi bi-buildings"></i>
       </div>
-    }
+
+      <div class="logo-text">
+        <h2>CIVIX</h2>
+        <span>CONTROL DE OBRA</span>
+      </div>
+
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <div class="sidebar-navigation">
+
+      <p class="menu-title">
+        ESPACIO DE TRABAJO
+      </p>
+
+      <nav class="menu">
+
+        @for (item of menuItems(); track item.route) {
+
+        <a [routerLink]="item.route" routerLinkActive="active">
+          <i class="bi menu-icon" [class]="item.icon"></i>
+          <span>{{ item.label }}</span>
+        </a>
+        }
+
+      </nav>
+
+    </div>
+
+    <!-- PERFIL -->
+    <div class="sidebar-footer">
+
+      @if (usuario(); as usuarioActual) {
+
+      <div class="user-profile">
+        <div class="user-avatar">
+          {{ obtenerIniciales(usuarioActual.nombre) }}
+        </div>
+        <div class="user-info">
+          <strong>{{ usuarioActual.nombre }}</strong>
+          <span>{{ usuarioActual.rol }}</span>
+        </div>
+
+      </div>
+
+      }
+
+      <button class="logout-btn" type="button" (click)="cerrarSesion()">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <span>Cerrar sesión</span>
+      </button>
+
+    </div>
   </aside>
 
-  <main class="content">
-    <header>
-      <h3>Sistema de Gestión de Obras</h3>
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="main-container">
+
+    <header class="topbar">
+
+      <nav class="breadcrumb" aria-label="Ruta de navegación">
+
+        <span>CIVIX</span>
+
+        @if (tituloPagina() !== 'Inicio') {
+
+        <i class="bi bi-chevron-right"></i>
+
+        <span>{{ tituloPagina() }}</span>
+
+        }
+
+      </nav>
+
+      <div class="topbar-actions">
+
+        <button class="notification-btn" type="button" aria-label="Notificaciones" disabled
+          title="Notificaciones próximamente">
+          <i class="bi bi-bell"></i>
+        </button>
+
+      </div>
+
     </header>
 
-    <section>
+    <!-- CONTENIDO DINÁMICO -->
+    <main class="page-content">
       <router-outlet></router-outlet>
-    </section>
-  </main>
+    </main>
 
+  </div>
 </div>

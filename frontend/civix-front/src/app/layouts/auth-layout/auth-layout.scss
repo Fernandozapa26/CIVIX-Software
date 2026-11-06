@@ -1,5 +1,7 @@
 .auth {
   display: grid;
+  font-family: 'Manrope', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--civix-tinta);
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   min-height: 100dvh;
 }

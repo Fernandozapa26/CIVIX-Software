@@ -1,8 +1,30 @@
-/* Estilos globales y colores de marca CIVIX (tomados del prototipo de Figma). */
+/* You can add global styles to this file, and also import other style files */
+/* =========================================
+   CIVIX - ESTILOS GLOBALES
+   ========================================= */
+
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+/* =========================================
+   VARIABLES DE DISEÑO CIVIX
+   ========================================= */
 
 :root {
+  --civix-primary: #102b35;
+  --civix-secondary: #1c414b;
+  --civix-accent: #f5a623;
+
+  --civix-background: #f5f3ef;
+  --civix-white: #ffffff;
+
+  --civix-text: #24343b;
+  --civix-text-muted: #7b8790;
+
+  --civix-border: #e4e7e9;
+
+  /* Variables de las pantallas de login y registro (prototipo de Figma) */
   --civix-naranja: #f5a623;
-  /* Naranja más oscuro para textos pequeños sobre fondo claro (contraste WCAG AA). */
+  /* Naranja más oscuro para textos pequeños sobre fondo claro (contraste WCAG AA) */
   --civix-naranja-texto: #a15c00;
   --civix-tinta: #12222b;
   --civix-texto-suave: #5b666d;
@@ -11,22 +33,57 @@
   --civix-error: #c0392b;
 }
 
-*,
-*::before,
-*::after {
+/* =========================================
+   ESTILOS GENERALES
+   ========================================= */
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--civix-background);
+  color: var(--civix-text);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+* {
   box-sizing: border-box;
 }
 
-html,
-body {
-  margin: 0;
-  min-height: 100%;
+/* =========================================
+   BOTONES CIVIX
+   ========================================= */
+
+.btn-civix {
+  background-color: var(--civix-accent);
+  color: var(--civix-primary);
+  border: none;
+  padding: 12px 20px;
+  font-weight: 600;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #e39512;
+  }
 }
 
-body {
-  font-family: 'Manrope', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  color: var(--civix-tinta);
-  background: var(--civix-fondo);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* =========================================
+   TARJETAS CIVIX
+   ========================================= */
+
+.card-civix {
+  background-color: var(--civix-white);
+  border: 1px solid var(--civix-border);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+/* =========================================
+   TÍTULOS CIVIX
+   ========================================= */
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--civix-primary);
 }
