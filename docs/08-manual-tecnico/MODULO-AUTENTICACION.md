@@ -276,11 +276,10 @@ Pantalla dividida del prototipo de Figma.
 Parcial de Sass que comparten login y registro: tipografía del encabezado, campos, botón, alertas y enlace inferior. Para cambiar el aspecto de ambos formularios, se edita este archivo.
 
 ### 5.11 Archivos modificados
-- **`app.routes.ts`:** hay dos rutas padre con `path: ''`.
-  - La primera usa `AuthLayout` y `guestGuard` para `/login` y `/registro`.
-  - La segunda usa `MainLayout` y `authGuard` para las rutas privadas.
-  - Cada ruta privada declara `data: { roles: [...] }`.
-  - El router de Angular prueba la primera y, si ninguna hija coincide, pasa a la segunda.
+- **`app.routes.ts`:**
+  - `/login` y `/registro` son rutas propias que cargan `AuthLayout` con `guestGuard`. **No deben usar `path: ''`**, porque competirían con la ruta raíz del layout principal y dejarían la pantalla en blanco al abrir `localhost:4200`.
+  - La ruta `''` usa `MainLayout` y `authGuard`. Sus hijas (`inicio`, `cotizaciones`, `cotizaciones/nueva`, `materiales`) declaran `data: { roles: [...] }`.
+  - Después del login se entra a `/inicio` (`RUTA_INICIO` en `auth.service.ts`).
 - **`app.config.ts`:** `provideHttpClient(withFetch(), withInterceptors([authInterceptor]))`.
 - **`app.html`:** se eliminó la página de bienvenida de Angular. Antes se mostraba encima de todas las rutas; ahora el archivo solo tiene `<router-outlet />`.
 - **`layouts/main-layout/*`:**

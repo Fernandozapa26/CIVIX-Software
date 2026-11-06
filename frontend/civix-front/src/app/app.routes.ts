@@ -4,19 +4,27 @@ import { authGuard, guestGuard } from './core/guards/auth.guard';
 import { ROLES_GESTION, ROLES_TODOS } from './core/models/auth.models';
 
 export const routes: Routes = [
+  // Pantallas públicas dentro de la pantalla dividida de Figma.
+  // Cada una tiene su propio path para no competir con la ruta raíz ('') del layout principal.
   {
-    // Pantallas públicas (login y registro) dentro de la pantalla dividida de Figma
-    path: '',
+    path: 'login',
     loadComponent: () => import('./layouts/auth-layout/auth-layout').then((m) => m.AuthLayout),
     canActivate: [guestGuard],
     children: [
       {
-        path: 'login',
+        path: '',
         title: 'Iniciar sesión',
         loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
       },
+    ],
+  },
+  {
+    path: 'registro',
+    loadComponent: () => import('./layouts/auth-layout/auth-layout').then((m) => m.AuthLayout),
+    canActivate: [guestGuard],
+    children: [
       {
-        path: 'registro',
+        path: '',
         title: 'Crear cuenta',
         loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
       },
