@@ -1,0 +1,475 @@
+<!-- RESUMEN -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 resumen">
+      <div class="card-body">
+        <span class="resumen-etiqueta">Registros</span>
+        <span class="resumen-valor">{{ resumen().total }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 resumen resumen-pedido">
+      <div class="card-body">
+        <span class="resumen-etiqueta">Pedidos</span>
+        <span class="resumen-valor">{{ resumen().pedido }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 resumen resumen-bodega">
+      <div class="card-body">
+        <span class="resumen-etiqueta">En bodega</span>
+        <span class="resumen-valor">{{ resumen().enBodega }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100 resumen resumen-retirado">
+      <div class="card-body">
+        <span class="resumen-etiqueta">Retirados</span>
+        <span class="resumen-valor">{{ resumen().retirado }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MENSAJES -->
+<div aria-live="polite">
+  @if (mensajeExito()) {
+    <div
+      class="alert alert-success d-flex justify-content-between align-items-center"
+      role="status"
+    >
+      <span><i class="bi bi-check-circle me-2" aria-hidden="true"></i>{{ mensajeExito() }}</span>
+      <button
+        type="button"
+        class="btn-close"
+        aria-label="Cerrar mensaje"
+        (click)="mensajeExito.set(null)"
+      ></button>
+    </div>
+  }
+  @if (error()) {
+    <div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+      <span>{{ error() }}</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+        Reintentar
+      </button>
+    </div>
+  }
+</div>
+
+<!-- FORMULARIO: REGISTRAR / EDITAR MATERIAL (RF-006) -->
+@if (panel() === 'registrar' || panel() === 'editar') {
+  <div class="card border-0 shadow-sm mb-4 panel-formulario">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0 fw-semibold">
+        <i class="bi bi-box-seam me-2" aria-hidden="true"></i>
+        @if (panel() === 'registrar') {
+          Registrar material en {{ obra().nombre }}
+        } @else {
+          Editar {{ seleccionado()?.materialNombre }}
+        }
+      </h2>
+      <button
+        type="button"
+        class="btn-close"
+        aria-label="Cerrar formulario"
+        (click)="cerrarPanel()"
+      ></button>
+    </div>
+
+    <form class="card-body" [formGroup]="formMaterial" (ngSubmit)="guardarMaterial()" novalidate>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="om-material" class="form-label fw-semibold">
+            Material <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="om-material"
+            class="form-select"
+            formControlName="materialId"
+            aria-required="true"
+            aria-describedby="om-material-error"
+            [class.is-invalid]="invalido(formMaterial.controls.materialId)"
+          >
+            <option [ngValue]="null" disabled>Selecciona un material</option>
+            @for (material of materialesActivos(); track material.id) {
+              <option [ngValue]="material.id">
+                {{ material.nombre }} ({{ material.unidadMedida }})
+              </option>
+            }
+          </select>
+          <div id="om-material-error" class="invalid-feedback">Selecciona un material.</div>
+          @if (panel() === 'registrar' && materialesActivos().length === 0) {
+            <div class="form-text">No hay materiales activos. Créalos en la pestaña Catálogo.</div>
+          }
+        </div>
+
+        <div class="col-md-3">
+          <label for="om-cantidad" class="form-label fw-semibold">
+            Cantidad <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <div class="input-group has-validation">
+            <input
+              id="om-cantidad"
+              type="number"
+              class="form-control"
+              formControlName="cantidad"
+              min="0.001"
+              step="any"
+              aria-required="true"
+              aria-describedby="om-cantidad-error"
+              [class.is-invalid]="invalido(formMaterial.controls.cantidad)"
+            />
+            @if (unidadMaterial(formMaterial.controls.materialId.value); as unidad) {
+              <span class="input-group-text">{{ unidad }}</span>
+            }
+            <div id="om-cantidad-error" class="invalid-feedback">
+              Ingresa una cantidad mayor que cero.
+            </div>
+          </div>
+          @if (panel() === 'editar' && seleccionado(); as item) {
+            @if (item.cantidadRetirada > 0) {
+              <div class="form-text">
+                Ya se retiraron {{ formatearCantidad(item.cantidadRetirada) }}: no puede ser menor.
+              </div>
+            }
+          }
+        </div>
+
+        <div class="col-md-3">
+          <label for="om-estado" class="form-label fw-semibold">
+            Estado <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <select id="om-estado" class="form-select" formControlName="estado" aria-required="true">
+            @for (estado of estadosSeleccionables; track estado) {
+              <option [ngValue]="estado">{{ estado }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label for="om-cotizacion" class="form-label fw-semibold">Cotización asociada</label>
+          <select id="om-cotizacion" class="form-select" formControlName="cotizacionId">
+            <option [ngValue]="null">Sin cotización</option>
+            @for (cotizacion of cotizaciones(); track cotizacion.id) {
+              <option [ngValue]="cotizacion.id">{{ textoCotizacion(cotizacion) }}</option>
+            }
+          </select>
+          <div class="form-text">Opcional.</div>
+        </div>
+      </div>
+
+      @if (errorFormulario()) {
+        <div class="alert alert-danger mt-3 mb-0" role="alert">{{ errorFormulario() }}</div>
+      }
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarPanel()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-warning fw-semibold" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          } @else {
+            <i class="bi bi-check-lg me-2" aria-hidden="true"></i>
+          }
+          {{ panel() === 'registrar' ? 'Registrar material' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<!-- FORMULARIO: RETIRO -->
+@if (panel() === 'retirar' && seleccionado(); as item) {
+  <div class="card border-0 shadow-sm mb-4 panel-formulario">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0 fw-semibold">
+        <i class="bi bi-box-arrow-up-right me-2" aria-hidden="true"></i>
+        Retirar {{ item.materialNombre }}
+      </h2>
+      <button
+        type="button"
+        class="btn-close"
+        aria-label="Cerrar formulario"
+        (click)="cerrarPanel()"
+      ></button>
+    </div>
+
+    <form class="card-body" [formGroup]="formRetiro" (ngSubmit)="guardarRetiro()" novalidate>
+      <p class="mb-3">
+        Disponible en bodega:
+        <strong>{{ formatearCantidad(item.cantidadDisponible) }} {{ item.unidadMedida }}</strong>
+      </p>
+
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label for="ret-cantidad" class="form-label fw-semibold">
+            Cantidad a retirar <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <div class="input-group has-validation">
+            <input
+              id="ret-cantidad"
+              type="number"
+              class="form-control"
+              formControlName="cantidad"
+              min="0.001"
+              [max]="item.cantidadDisponible"
+              step="any"
+              aria-required="true"
+              aria-describedby="ret-cantidad-error"
+              [class.is-invalid]="invalido(formRetiro.controls.cantidad)"
+            />
+            <span class="input-group-text">{{ item.unidadMedida }}</span>
+            <div id="ret-cantidad-error" class="invalid-feedback">
+              Debe ser mayor que cero y máximo {{ formatearCantidad(item.cantidadDisponible) }}.
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-5">
+          <label for="ret-persona" class="form-label fw-semibold">
+            ¿Quién retira? <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="ret-persona"
+            type="text"
+            class="form-control"
+            formControlName="retiradoPor"
+            maxlength="150"
+            placeholder="Nombre de la persona que recoge el material"
+            autocomplete="off"
+            aria-required="true"
+            aria-describedby="ret-persona-error"
+            [class.is-invalid]="invalido(formRetiro.controls.retiradoPor)"
+          />
+          <div id="ret-persona-error" class="invalid-feedback">
+            Escribe el nombre de quien retira.
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label for="ret-obra" class="form-label fw-semibold">
+            Para la obra <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="ret-obra"
+            class="form-select"
+            formControlName="obraDestinoId"
+            aria-required="true"
+            [class.is-invalid]="invalido(formRetiro.controls.obraDestinoId)"
+          >
+            @for (destino of obras(); track destino.id) {
+              <option [ngValue]="destino.id">{{ destino.nombre }}</option>
+            }
+          </select>
+          <div class="invalid-feedback">Selecciona la obra de destino.</div>
+        </div>
+
+        <div class="col-12">
+          <label for="ret-observacion" class="form-label fw-semibold">Observación</label>
+          <textarea
+            id="ret-observacion"
+            class="form-control"
+            formControlName="observacion"
+            rows="2"
+            maxlength="500"
+            placeholder="Opcional: frente de trabajo, motivo, etc."
+          ></textarea>
+        </div>
+      </div>
+
+      <p class="form-text mt-3 mb-0">
+        <i class="bi bi-person-check me-1" aria-hidden="true"></i>
+        El retiro queda registrado a nombre de tu usuario.
+      </p>
+
+      @if (errorFormulario()) {
+        <div class="alert alert-danger mt-3 mb-0" role="alert">{{ errorFormulario() }}</div>
+      }
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarPanel()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-warning fw-semibold" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          } @else {
+            <i class="bi bi-check-lg me-2" aria-hidden="true"></i>
+          }
+          Registrar retiro
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<!-- TABLA (RF-007) -->
+<div class="card border-0 shadow-sm">
+  <div
+    class="card-header bg-white border-bottom py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center"
+  >
+    <h2 class="h5 mb-0 fw-semibold">Materiales de {{ obra().nombre }}</h2>
+
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <label for="filtro-estado" class="visually-hidden">Filtrar por estado</label>
+      <select
+        id="filtro-estado"
+        class="form-select form-select-sm w-auto"
+        [value]="filtroEstado()"
+        (change)="filtroEstado.set($any($event.target).value)"
+      >
+        @for (filtro of filtros; track filtro) {
+          <option [value]="filtro">{{ filtro === 'Todos' ? 'Todos los estados' : filtro }}</option>
+        }
+      </select>
+
+      <button type="button" class="btn btn-warning btn-sm fw-semibold" (click)="abrirRegistro()">
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
+        Registrar material
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body p-0">
+    @if (cargando()) {
+      <div
+        class="d-flex align-items-center justify-content-center gap-2 text-muted py-5"
+        role="status"
+      >
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Cargando materiales…
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <caption class="visually-hidden">
+            Materiales registrados en la obra
+            {{
+              obra().nombre
+            }}
+          </caption>
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-4 py-3">Material</th>
+              <th scope="col" class="text-end">Cantidad</th>
+              <th scope="col" class="text-end">Retirado</th>
+              <th scope="col" class="text-end">Disponible</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Cotización</th>
+              <th scope="col">Registro</th>
+              <th scope="col" class="text-end pe-4">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of materialesFiltrados(); track item.id) {
+              <tr>
+                <td class="ps-4">
+                  <span class="fw-semibold">{{ item.materialNombre }}</span>
+                  <span class="d-block small text-secondary">{{ item.unidadMedida }}</span>
+                </td>
+                <td class="text-end text-nowrap">{{ formatearCantidad(item.cantidad) }}</td>
+                <td class="text-end text-nowrap">{{ formatearCantidad(item.cantidadRetirada) }}</td>
+                <td class="text-end text-nowrap fw-semibold">
+                  {{ formatearCantidad(item.cantidadDisponible) }}
+                </td>
+                <td>
+                  <span [class]="claseEstado(item.estado)">{{ item.estado }}</span>
+                </td>
+                <td class="text-nowrap">
+                  @if (item.cotizacionId) {
+                    N.º {{ item.cotizacionId }}
+                  } @else {
+                    <span class="text-secondary">—</span>
+                  }
+                </td>
+                <td class="small text-nowrap">
+                  {{ formatearFecha(item.fechaRegistro) }}
+                  <span class="d-block text-secondary">{{ item.registradoPor }}</span>
+                </td>
+                <td class="text-end pe-4 text-nowrap">
+                  @if (confirmarEliminarId() === item.id) {
+                    <span class="small me-2">¿Quitar de la obra?</span>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-danger me-1"
+                      [disabled]="guardando()"
+                      (click)="eliminar(item)"
+                    >
+                      Sí, quitar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="confirmarEliminarId.set(null)"
+                    >
+                      No
+                    </button>
+                  } @else {
+                    @if (item.estado === 'Pedido') {
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-success me-1"
+                        [disabled]="guardando()"
+                        (click)="marcarEnBodega(item)"
+                        [attr.aria-label]="'Marcar ' + item.materialNombre + ' como en bodega'"
+                        title="Marcar como en bodega"
+                      >
+                        <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i>
+                      </button>
+                    }
+                    @if (item.estado === 'En bodega' && item.cantidadDisponible > 0) {
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary me-1"
+                        (click)="abrirRetiro(item)"
+                        [attr.aria-label]="'Registrar retiro de ' + item.materialNombre"
+                        title="Registrar retiro"
+                      >
+                        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary me-1"
+                      (click)="abrirEdicion(item)"
+                      [attr.aria-label]="'Editar ' + item.materialNombre"
+                      title="Editar"
+                    >
+                      <i class="bi bi-pencil" aria-hidden="true"></i>
+                    </button>
+                    @if (item.totalRetiros === 0) {
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="pedirConfirmacionEliminar(item)"
+                        [attr.aria-label]="'Quitar ' + item.materialNombre + ' de la obra'"
+                        title="Quitar de la obra"
+                      >
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                      </button>
+                    }
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="8" class="text-center py-5 text-secondary">
+                  @if (materiales().length === 0) {
+                    Esta obra todavía no tiene materiales registrados.
+                  } @else {
+                    No hay materiales con el estado seleccionado.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

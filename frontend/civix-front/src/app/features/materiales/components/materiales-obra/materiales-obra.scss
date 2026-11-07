@@ -1,0 +1,62 @@
+.resumen {
+  border-left: 4px solid var(--civix-primary) !important;
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.resumen-pedido {
+  border-left-color: #b45309 !important;
+}
+
+.resumen-bodega {
+  border-left-color: #1d6fa5 !important;
+}
+
+.resumen-retirado {
+  border-left-color: #2f7d4f !important;
+}
+
+.resumen-etiqueta {
+  color: var(--civix-texto-suave);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.resumen-valor {
+  color: var(--civix-primary);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.panel-formulario {
+  border-top: 3px solid var(--civix-accent) !important;
+}
+
+/* Etiquetas de estado con contraste AA */
+.estado {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.estado-pedido {
+  background: #fdf0dc;
+  color: #8a4b00;
+}
+
+.estado-bodega {
+  background: #e3f0fa;
+  color: #135b8a;
+}
+
+.estado-retirado {
+  background: #e3f3e8;
+  color: #23633d;
+}
