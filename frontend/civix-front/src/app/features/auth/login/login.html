@@ -1,0 +1,106 @@
+<header class="encabezado">
+  <p class="etiqueta">Acceso seguro</p>
+  <h1 class="titulo">Bienvenido a CIVIX</h1>
+  <p class="subtitulo">Ingresa con tu cuenta o usa uno de los perfiles de prueba.</p>
+</header>
+
+@if (sesionExpirada && !error()) {
+  <p class="alerta alerta--info" role="status">Tu sesión expiró. Vuelve a iniciar sesión.</p>
+}
+
+@if (error(); as mensaje) {
+  <p class="alerta" role="alert">{{ mensaje }}</p>
+}
+
+<form [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="campo">
+    <label for="login-correo">Correo electrónico</label>
+    <div class="entrada">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m3 7 9 6 9-6" />
+      </svg>
+      <input id="login-correo" type="email" formControlName="correo" placeholder="nombre@civix.co"
+        autocomplete="email" [attr.aria-invalid]="campoInvalido('correo')"
+        aria-describedby="login-correo-error" />
+    </div>
+    @if (campoInvalido('correo')) {
+      <p class="error-campo" id="login-correo-error">
+        {{ form.controls.correo.hasError('required') ? 'Ingresa tu correo.' : 'El correo no tiene un formato válido.' }}
+      </p>
+    }
+  </div>
+
+  <div class="campo">
+    <label for="login-password">Contraseña</label>
+    <div class="entrada">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="5" y="11" width="14" height="10" rx="2" />
+        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+      </svg>
+      <input id="login-password" type="password" formControlName="password"
+        placeholder="Ingresa tu contraseña" autocomplete="current-password"
+        [attr.aria-invalid]="campoInvalido('password')" aria-describedby="login-password-error" />
+    </div>
+    @if (campoInvalido('password')) {
+      <p class="error-campo" id="login-password-error">Ingresa tu contraseña.</p>
+    }
+  </div>
+
+  <button class="boton" type="submit" [disabled]="enviando()">
+    {{ enviando() ? 'Ingresando…' : 'Iniciar sesión' }}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+      <path d="m10 17 5-5-5-5" />
+      <path d="M15 12H3" />
+    </svg>
+  </button>
+</form>
+
+<p class="cambio">¿No tienes cuenta? <a routerLink="/registro">Regístrate</a></p>
+
+@if (cuentasPrueba.length > 0) {
+  <section class="pruebas" aria-labelledby="titulo-pruebas">
+    <h2 class="pruebas__titulo" id="titulo-pruebas"><span>Cuentas de prueba</span></h2>
+
+    <div class="pruebas__lista">
+      @for (cuenta of cuentasPrueba; track cuenta.correo) {
+        <button type="button" class="cuenta" (click)="usarCuenta(cuenta)" [disabled]="enviando()"
+          [attr.aria-label]="'Ingresar como ' + cuenta.rol">
+          <span class="cuenta__rol">
+            @switch (cuenta.icono) {
+              @case ('escudo') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+              }
+              @case ('casco') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 18h20" />
+                  <path d="M4 18v-2a8 8 0 0 1 16 0v2" />
+                  <path d="M10 8.5V5h4v3.5" />
+                </svg>
+              }
+              @default {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 21a8 8 0 0 1 16 0" />
+                </svg>
+              }
+            }
+            {{ cuenta.rol }}
+          </span>
+          <span class="cuenta__dato">{{ cuenta.correo }}</span>
+          <span class="cuenta__clave">Clave: {{ cuenta.password }}</span>
+        </button>
+      }
+    </div>
+  </section>
+}

@@ -1,0 +1,98 @@
+<div class="card border-0 shadow-sm">
+  <div
+    class="card-header bg-white border-bottom py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center"
+  >
+    <h2 class="h5 mb-0 fw-semibold">Retiros de {{ obra().nombre }}</h2>
+
+    <div>
+      <label for="buscar-retiro" class="visually-hidden">Buscar en el historial</label>
+      <input
+        id="buscar-retiro"
+        type="search"
+        class="form-control form-control-sm"
+        placeholder="Buscar material o persona"
+        [value]="busqueda()"
+        (input)="busqueda.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <div class="card-body p-0">
+    @if (error()) {
+      <div
+        class="alert alert-danger d-flex justify-content-between align-items-center m-3"
+        role="alert"
+      >
+        <span>{{ error() }}</span>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+          Reintentar
+        </button>
+      </div>
+    } @else if (cargando()) {
+      <div
+        class="d-flex align-items-center justify-content-center gap-2 text-muted py-5"
+        role="status"
+      >
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Cargando retiros…
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <caption class="visually-hidden">
+            Historial de retiros de la obra
+            {{
+              obra().nombre
+            }}
+          </caption>
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-4 py-3">Fecha</th>
+              <th scope="col">Material</th>
+              <th scope="col" class="text-end">Cantidad</th>
+              <th scope="col">Retiró</th>
+              <th scope="col">Para la obra</th>
+              <th scope="col">Registró</th>
+              <th scope="col" class="pe-4">Observación</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (retiro of retirosFiltrados(); track retiro.id) {
+              <tr>
+                <td class="ps-4 small text-nowrap">{{ formatearFecha(retiro.fechaRetiro) }}</td>
+                <td class="fw-semibold">{{ retiro.materialNombre }}</td>
+                <td class="text-end text-nowrap">
+                  {{ formatearCantidad(retiro.cantidad) }} {{ retiro.unidadMedida }}
+                </td>
+                <td>{{ retiro.retiradoPor }}</td>
+                <td>
+                  {{ retiro.obraDestinoNombre }}
+                  @if (esSalidaHaciaOtraObra(retiro)) {
+                    <span class="badge text-bg-warning ms-1">Traslado</span>
+                  }
+                  @if (esEntradaDesdeOtraObra(retiro)) {
+                    <span class="d-block small text-secondary"
+                      >Desde {{ retiro.obraOrigenNombre }}</span
+                    >
+                  }
+                </td>
+                <td class="small">{{ retiro.registradoPor }}</td>
+                <td class="pe-4 small text-secondary">{{ retiro.observacion || '—' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="text-center py-5 text-secondary">
+                  @if (retiros().length === 0) {
+                    No hay retiros registrados para esta obra.
+                  } @else {
+                    Ningún retiro coincide con la búsqueda.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

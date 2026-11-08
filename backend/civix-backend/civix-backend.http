@@ -4,3 +4,40 @@ GET {{civix_backend_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+# --- Autenticación ---
+
+# @name login
+POST {{civix_backend_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "admin@civix.co",
+  "password": "Admin123"
+}
+
+###
+
+# Usuario actual y obras permitidas (usa el token del login anterior)
+GET {{civix_backend_HostAddress}}/api/auth/me
+Authorization: Bearer {{login.response.body.$.token}}
+
+###
+
+# Registro público: el usuario queda con rol Cliente
+POST {{civix_backend_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Usuario Nuevo",
+  "correo": "nuevo@civix.co",
+  "password": "Nuevo1234"
+}
+
+###
+
+# Materiales ahora requiere token
+GET {{civix_backend_HostAddress}}/api/materiales
+Authorization: Bearer {{login.response.body.$.token}}
+
+###

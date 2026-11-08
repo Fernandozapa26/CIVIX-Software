@@ -1,0 +1,30 @@
+.materiales-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--civix-border);
+}
+
+.materiales-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--civix-texto-suave);
+  font-weight: 600;
+  padding: 10px 16px;
+  margin-bottom: -1px;
+
+  &:hover {
+    color: var(--civix-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--civix-primary);
+    outline-offset: 2px;
+  }
+
+  &.active {
+    color: var(--civix-primary);
+    border-bottom-color: var(--civix-accent);
+  }
+}

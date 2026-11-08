@@ -13,4 +13,7 @@ public class Obra
     public decimal Presupuesto { get; set; }
     public int Avance { get; set; }
     public int Personal { get; set; }
+
+    // Campos usados por la integracion con la base de datos (modulo de Materiales)
+    public DateTime? FechaCreacion { get; set; }
 }

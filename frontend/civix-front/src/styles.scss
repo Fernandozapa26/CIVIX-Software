@@ -1,31 +1,97 @@
-@use 'sass:color';
+/* You can add global styles to this file, and also import other style files */
+/* =========================================
+   CIVIX - ESTILOS GLOBALES
+   ========================================= */
+
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+/* =========================================
+   VARIABLES DE DISEÑO CIVIX
+   ========================================= */
 
 :root {
-  --civix-sidebar: #0d222a;
-  --civix-bg: #f8f8f6;
-  --civix-card: #ffffff;
-  --civix-accent: #e5941c;
-  --civix-text: #1a1a1a;
-  --civix-muted: #6b7280;
-  --civix-border: #e5e7eb;
+  --civix-primary: #102b35;
+  --civix-secondary: #1c414b;
+  --civix-accent: #f5a623;
+
+  --civix-background: #f5f3ef;
+  --civix-white: #ffffff;
+
+  --civix-text: #24343b;
+  --civix-text-muted: #7b8790;
+
+  --civix-border: #e4e7e9;
+
+  /* Variables de las pantallas de login y registro (prototipo de Figma) */
+  --civix-naranja: #f5a623;
+  /* Naranja más oscuro para textos pequeños sobre fondo claro (contraste WCAG AA) */
+  --civix-naranja-texto: #a15c00;
+  --civix-tinta: #12222b;
+  --civix-texto-suave: #5b666d;
+  --civix-fondo: #f3f2ee;
+  --civix-borde: #d9dcdd;
+  --civix-error: #c0392b;
+
+  /* Alias para el modulo de Obras (estilos existentes) */
+  --civix-sidebar: var(--civix-primary);
+  --civix-bg: var(--civix-background);
+  --civix-card: var(--civix-white);
+  --civix-muted: var(--civix-text-muted);
   --civix-success: #2e7d32;
   --civix-info: #1565c0;
+}
+
+/* =========================================
+   ESTILOS GENERALES
+   ========================================= */
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--civix-background);
+  color: var(--civix-text);
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  color: var(--civix-text);
-  background: var(--civix-bg);
+/* =========================================
+   BOTONES CIVIX
+   ========================================= */
+
+.btn-civix {
+  background-color: var(--civix-accent);
+  color: var(--civix-primary);
+  border: none;
+  padding: 12px 20px;
+  font-weight: 600;
+  border-radius: 5px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #e39512;
+  }
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* =========================================
+   TARJETAS CIVIX
+   ========================================= */
+
+.card-civix {
+  background-color: var(--civix-white);
+  border: 1px solid var(--civix-border);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+/* =========================================
+   TÍTULOS CIVIX
+   ========================================= */
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--civix-primary);
 }

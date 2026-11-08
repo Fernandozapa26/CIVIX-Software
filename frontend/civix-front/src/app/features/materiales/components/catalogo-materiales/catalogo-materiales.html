@@ -1,0 +1,249 @@
+<div aria-live="polite">
+  @if (mensajeExito()) {
+    <div
+      class="alert alert-success d-flex justify-content-between align-items-center"
+      role="status"
+    >
+      <span><i class="bi bi-check-circle me-2" aria-hidden="true"></i>{{ mensajeExito() }}</span>
+      <button
+        type="button"
+        class="btn-close"
+        aria-label="Cerrar mensaje"
+        (click)="mensajeExito.set(null)"
+      ></button>
+    </div>
+  }
+  @if (error()) {
+    <div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+      <span>{{ error() }}</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+        Reintentar
+      </button>
+    </div>
+  }
+</div>
+
+@if (mostrarFormulario()) {
+  <div
+    class="card border-0 shadow-sm mb-4"
+    style="border-top: 3px solid var(--civix-accent) !important"
+  >
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0 fw-semibold">
+        {{ editando() ? 'Editar ' + editando()?.nombre : 'Nuevo material' }}
+      </h2>
+      <button
+        type="button"
+        class="btn-close"
+        aria-label="Cerrar formulario"
+        (click)="cerrarFormulario()"
+      ></button>
+    </div>
+
+    <form class="card-body" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="cat-nombre" class="form-label fw-semibold">
+            Nombre <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="cat-nombre"
+            type="text"
+            class="form-control"
+            formControlName="nombre"
+            maxlength="150"
+            placeholder="Ej.: Cemento gris 50 kg"
+            aria-required="true"
+            [class.is-invalid]="invalido(formulario.controls.nombre)"
+          />
+          <div class="invalid-feedback">Escribe el nombre del material.</div>
+        </div>
+
+        <div class="col-md-6">
+          <label for="cat-unidad" class="form-label fw-semibold">
+            Unidad de medida <span class="text-danger" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="cat-unidad"
+            type="text"
+            class="form-control"
+            formControlName="unidadMedida"
+            maxlength="30"
+            list="unidades-sugeridas"
+            placeholder="Ej.: Bulto, m³, kg"
+            aria-required="true"
+            [class.is-invalid]="invalido(formulario.controls.unidadMedida)"
+          />
+          <datalist id="unidades-sugeridas">
+            @for (unidad of unidades; track unidad) {
+              <option [value]="unidad"></option>
+            }
+          </datalist>
+          <div class="invalid-feedback">Indica la unidad de medida.</div>
+        </div>
+
+        <div class="col-12">
+          <label for="cat-descripcion" class="form-label fw-semibold">Descripción</label>
+          <textarea
+            id="cat-descripcion"
+            class="form-control"
+            formControlName="descripcion"
+            rows="2"
+            maxlength="500"
+            placeholder="Opcional"
+          ></textarea>
+        </div>
+      </div>
+
+      @if (errorFormulario()) {
+        <div class="alert alert-danger mt-3 mb-0" role="alert">{{ errorFormulario() }}</div>
+      }
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrarFormulario()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-warning fw-semibold" [disabled]="guardando()">
+          @if (guardando()) {
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          } @else {
+            <i class="bi bi-check-lg me-2" aria-hidden="true"></i>
+          }
+          {{ editando() ? 'Guardar cambios' : 'Crear material' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<div class="card border-0 shadow-sm">
+  <div
+    class="card-header bg-white border-bottom py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center"
+  >
+    <h2 class="h5 mb-0 fw-semibold">Catálogo de materiales</h2>
+
+    <div class="d-flex flex-wrap gap-3 align-items-center">
+      <div class="form-check mb-0">
+        <input
+          id="ver-inactivos"
+          class="form-check-input"
+          type="checkbox"
+          [checked]="mostrarInactivos()"
+          (change)="mostrarInactivos.set($any($event.target).checked)"
+        />
+        <label class="form-check-label small" for="ver-inactivos">Ver desactivados</label>
+      </div>
+
+      <label for="buscar-material" class="visually-hidden">Buscar material</label>
+      <input
+        id="buscar-material"
+        type="search"
+        class="form-control form-control-sm w-auto"
+        placeholder="Buscar material"
+        [value]="busqueda()"
+        (input)="busqueda.set($any($event.target).value)"
+      />
+
+      <button type="button" class="btn btn-warning btn-sm fw-semibold" (click)="abrirNuevo()">
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
+        Nuevo material
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body p-0">
+    @if (cargando()) {
+      <div
+        class="d-flex align-items-center justify-content-center gap-2 text-muted py-5"
+        role="status"
+      >
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Cargando catálogo…
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <caption class="visually-hidden">
+            Catálogo de materiales
+          </caption>
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-4 py-3">Nombre</th>
+              <th scope="col">Unidad</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Estado</th>
+              <th scope="col" class="text-end pe-4">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (material of materialesFiltrados(); track material.id) {
+              <tr>
+                <td class="ps-4 fw-semibold">{{ material.nombre }}</td>
+                <td>{{ material.unidadMedida }}</td>
+                <td class="small text-secondary">{{ material.descripcion || '—' }}</td>
+                <td>
+                  @if (material.activo) {
+                    <span class="badge text-bg-success">Activo</span>
+                  } @else {
+                    <span class="badge text-bg-secondary">Desactivado</span>
+                  }
+                </td>
+                <td class="text-end pe-4 text-nowrap">
+                  @if (confirmarDesactivarId() === material.id) {
+                    <span class="small me-2">¿Desactivar?</span>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-danger me-1"
+                      [disabled]="guardando()"
+                      (click)="desactivar(material)"
+                    >
+                      Sí
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="confirmarDesactivarId.set(null)"
+                    >
+                      No
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary me-1"
+                      (click)="abrirEdicion(material)"
+                      [attr.aria-label]="'Editar ' + material.nombre"
+                      title="Editar"
+                    >
+                      <i class="bi bi-pencil" aria-hidden="true"></i>
+                    </button>
+                    @if (material.activo) {
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="confirmarDesactivarId.set(material.id)"
+                        [attr.aria-label]="'Desactivar ' + material.nombre"
+                        title="Desactivar"
+                      >
+                        <i class="bi bi-slash-circle" aria-hidden="true"></i>
+                      </button>
+                    }
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center py-5 text-secondary">
+                  @if (materiales().length === 0) {
+                    No hay materiales en el catálogo. Crea el primero con "Nuevo material".
+                  } @else {
+                    Ningún material coincide con la búsqueda.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
