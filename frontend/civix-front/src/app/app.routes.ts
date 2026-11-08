@@ -4,7 +4,12 @@ import { authGuard, guestGuard } from './core/guards/auth.guard';
 import { ROLES_GESTION, ROLES_TODOS } from './core/models/auth.models';
 
 export const routes: Routes = [
-  // Pantallas públicas dentro de la pantalla dividida de Figma.
+  // Landing pública
+  {
+    path: '',
+    loadComponent: () => import('./features/landing/landing').then((m) => m.Landing),
+  },
+  // Pantallas públicas
   {
     path: 'login',
     loadComponent: () => import('./layouts/auth-layout/auth-layout').then((m) => m.AuthLayout),
@@ -29,12 +34,11 @@ export const routes: Routes = [
       },
     ],
   },
+  // Aplicación (requiere sesión)
   {
-    // Componente principal con el menú (solo con sesión iniciada)
-    path: '',
+    path: 'app',
     loadComponent: () => import('./layouts/main-layout/main-layout').then((m) => m.MainLayout),
     canActivate: [authGuard],
-
     children: [
       {
         path: '',
@@ -91,6 +95,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'inicio',
+    redirectTo: '',
   },
 ];

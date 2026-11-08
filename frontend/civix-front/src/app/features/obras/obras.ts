@@ -120,7 +120,7 @@ export class Obras implements OnInit {
   protected cancelar(): void {
     this.mostrarFormulario.set(false);
     this.editandoId.set(null);
-    this.router.navigate(['/obras']);
+    this.router.navigate(['/app/obras']);
   }
 
   protected guardar(): void {
@@ -154,7 +154,7 @@ export class Obras implements OnInit {
       next: () => {
         this.mostrarFormulario.set(false);
         this.editandoId.set(null);
-        this.router.navigate(['/obras']);
+        this.router.navigate(['/app/obras']);
         this.cargar();
       },
       error: () => this.error.set('No se pudo guardar la obra.'),
