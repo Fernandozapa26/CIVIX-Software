@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Linq;
+using civix_backend.Data;
 using civix_backend.Models;
 
 namespace civix_backend.Controllers;
@@ -10,40 +12,36 @@ namespace civix_backend.Controllers;
 [Route("api/[controller]")]
 public class AvancesController : ControllerBase
 {
-    private static readonly List<Avance> _avances = new();
-    private static readonly object _lock = new();
+    private readonly CivixDbContext _context;
     private readonly IWebHostEnvironment _env;
 
-    public AvancesController(IWebHostEnvironment env)
+    public AvancesController(CivixDbContext context, IWebHostEnvironment env)
     {
+        _context = context;
         _env = env;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Avance>> ObtenerAvances([FromQuery] int? obraId)
+    public async Task<ActionResult<IEnumerable<Avance>>> ObtenerAvances([FromQuery] int? obraId)
     {
-        lock (_lock)
-        {
-            var query = _avances.AsQueryable();
-            if (obraId.HasValue)
-                query = query.Where(a => a.ObraId == obraId.Value);
-            return Ok(query.OrderByDescending(a => a.Fecha).ToList());
-        }
+        var query = _context.Avances.AsNoTracking().AsQueryable();
+        if (obraId.HasValue)
+            query = query.Where(a => a.ObraId == obraId.Value);
+
+        var avances = await query.OrderByDescending(a => a.Fecha).ToListAsync();
+        return Ok(avances);
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<Avance> ObtenerAvance(int id)
+    public async Task<ActionResult<Avance>> ObtenerAvance(int id)
     {
-        lock (_lock)
-        {
-            var avance = _avances.FirstOrDefault(a => a.Id == id);
-            if (avance is null) return NotFound();
-            return Ok(avance);
-        }
+        var avance = await _context.Avances.FindAsync(id);
+        if (avance is null) return NotFound();
+        return Ok(avance);
     }
 
     [HttpPost]
-    public ActionResult<Avance> CrearAvance([FromBody] Avance avance)
+    public async Task<ActionResult<Avance>> CrearAvance([FromBody] Avance avance)
     {
         if (avance.ObraId <= 0)
             return BadRequest("La obra es obligatoria.");
@@ -52,45 +50,46 @@ public class AvancesController : ControllerBase
         if (avance.PorcentajeAvance.HasValue && (avance.PorcentajeAvance < 0 || avance.PorcentajeAvance > 100))
             return BadRequest("El porcentaje debe estar entre 0 y 100.");
 
-        lock (_lock)
-        {
-            avance.Id = _avances.Count == 0 ? 1 : _avances.Max(a => a.Id) + 1;
-            if (avance.Fecha == default)
-                avance.Fecha = DateTime.UtcNow;
-            if (avance.Imagenes is null)
-                avance.Imagenes = new();
-            _avances.Add(avance);
-            return CreatedAtAction(nameof(ObtenerAvance), new { id = avance.Id }, avance);
-        }
+        if (avance.Fecha == default)
+            avance.Fecha = DateTime.UtcNow;
+        if (avance.Imagenes is null)
+            avance.Imagenes = new();
+        if (avance.RegistradoPorUsuarioId == 0)
+            avance.RegistradoPorUsuarioId = 1;
+
+        _context.Avances.Add(avance);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(ObtenerAvance), new { id = avance.Id }, avance);
     }
 
     [HttpPut("{id:int}")]
-    public IActionResult ActualizarAvance(int id, [FromBody] Avance avance)
+    public async Task<IActionResult> ActualizarAvance(int id, [FromBody] Avance avance)
     {
-        lock (_lock)
-        {
-            var existente = _avances.FirstOrDefault(a => a.Id == id);
-            if (existente is null) return NotFound();
+        var existente = await _context.Avances.FindAsync(id);
+        if (existente is null) return NotFound();
 
-            existente.ObraId = avance.ObraId;
-            existente.Fecha = avance.Fecha == default ? existente.Fecha : avance.Fecha;
-            existente.Descripcion = avance.Descripcion;
-            existente.PorcentajeAvance = avance.PorcentajeAvance;
-            existente.Imagenes = avance.Imagenes ?? new();
-            return NoContent();
-        }
+        existente.ObraId = avance.ObraId;
+        existente.Fecha = avance.Fecha == default ? existente.Fecha : avance.Fecha;
+        existente.Descripcion = avance.Descripcion;
+        existente.PorcentajeAvance = avance.PorcentajeAvance;
+        existente.Imagenes = avance.Imagenes ?? new();
+        if (avance.RegistradoPorUsuarioId != 0)
+            existente.RegistradoPorUsuarioId = avance.RegistradoPorUsuarioId;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
     }
 
     [HttpDelete("{id:int}")]
-    public IActionResult EliminarAvance(int id)
+    public async Task<IActionResult> EliminarAvance(int id)
     {
-        lock (_lock)
-        {
-            var avance = _avances.FirstOrDefault(a => a.Id == id);
-            if (avance is null) return NotFound();
-            _avances.Remove(avance);
-            return NoContent();
-        }
+        var avance = await _context.Avances.FindAsync(id);
+        if (avance is null) return NotFound();
+
+        _context.Avances.Remove(avance);
+        await _context.SaveChangesAsync();
+        return NoContent();
     }
 
     // Subida de imagenes. Devuelve la URL relativa que puede guardarse en Avance.Imagenes.

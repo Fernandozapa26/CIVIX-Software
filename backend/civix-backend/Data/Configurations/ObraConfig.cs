@@ -27,15 +27,17 @@ namespace civix_backend.Data.Configurations
 
             entity.Property(o => o.Estado).HasMaxLength(30).IsRequired();
 
+            entity.Property(o => o.Cliente).HasMaxLength(150);
+
+            entity.Property(o => o.Presupuesto).HasColumnType("decimal(18,2)");
+
+            entity.Property(o => o.Avance);
+
+            entity.Property(o => o.Personal);
+
             entity.Property(o => o.FechaCreacion)
                   .HasColumnType("datetime2")
                   .HasDefaultValueSql("SYSDATETIME()");
-
-            // Propiedades propias del modulo de Obras (no persistidas en dbo.Obras)
-            entity.Ignore(o => o.Cliente);
-            entity.Ignore(o => o.Presupuesto);
-            entity.Ignore(o => o.Avance);
-            entity.Ignore(o => o.Personal);
         }
     }
 }
