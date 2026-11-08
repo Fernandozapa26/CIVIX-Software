@@ -8,7 +8,7 @@ namespace civix_backend.DTOs.ObraMateriales
         [Range(1, int.MaxValue, ErrorMessage = "Selecciona un material.")]
         public int MaterialId { get; set; }
 
-        [Range(typeof(decimal), "0.001", "999999999", ErrorMessage = "La cantidad debe ser mayor que cero.")]
+        [Range(0.001, 999999999, ErrorMessage = "La cantidad debe ser mayor que cero.")]
         public decimal Cantidad { get; set; }
 
         /// <summary>"Pedido" o "En bodega".</summary>
@@ -21,7 +21,7 @@ namespace civix_backend.DTOs.ObraMateriales
     /// <summary>Cuerpo de PUT /api/obras/{obraId}/materiales/{id}.</summary>
     public class ActualizarObraMaterialDto
     {
-        [Range(typeof(decimal), "0.001", "999999999", ErrorMessage = "La cantidad debe ser mayor que cero.")]
+        [Range(0.001, 999999999, ErrorMessage = "La cantidad debe ser mayor que cero.")]
         public decimal Cantidad { get; set; }
 
         [Required(ErrorMessage = "Selecciona el estado.")]
@@ -55,7 +55,7 @@ namespace civix_backend.DTOs.ObraMateriales
         [Range(1, int.MaxValue, ErrorMessage = "Selecciona el material a retirar.")]
         public int ObraMaterialId { get; set; }
 
-        [Range(typeof(decimal), "0.001", "999999999", ErrorMessage = "La cantidad debe ser mayor que cero.")]
+        [Range(0.001, 999999999, ErrorMessage = "La cantidad debe ser mayor que cero.")]
         public decimal Cantidad { get; set; }
 
         [Required(ErrorMessage = "Indica quién retira el material.")]
