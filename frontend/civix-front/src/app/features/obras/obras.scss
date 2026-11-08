@@ -285,3 +285,18 @@
   color: #fff;
   border-color: var(--civix-accent);
 }
+
+.dashboard__new-btn {
+  background: var(--civix-accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dashboard__new-btn:hover {
+  filter: brightness(0.95);
+}
