@@ -300,3 +300,23 @@
 .dashboard__new-btn:hover {
   filter: brightness(0.95);
 }
+.project-card__people {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.project-card__people dt {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5b666d;
+}
+
+.project-card__people dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+  color: #12303a;
+}
