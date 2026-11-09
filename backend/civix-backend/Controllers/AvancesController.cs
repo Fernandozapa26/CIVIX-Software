@@ -60,14 +60,22 @@ public class AvancesController : ControllerBase
         _context.Avances.Add(avance);
         await _context.SaveChangesAsync();
 
+        await RecalcularAvanceObra(avance.ObraId);
+        await _context.SaveChangesAsync();
+
         return CreatedAtAction(nameof(ObtenerAvance), new { id = avance.Id }, avance);
     }
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> ActualizarAvance(int id, [FromBody] Avance avance)
     {
+        if (avance.PorcentajeAvance.HasValue && (avance.PorcentajeAvance < 0 || avance.PorcentajeAvance > 100))
+            return BadRequest("El porcentaje debe estar entre 0 y 100.");
+
         var existente = await _context.Avances.FindAsync(id);
         if (existente is null) return NotFound();
+
+        var obraAnteriorId = existente.ObraId;
 
         existente.ObraId = avance.ObraId;
         existente.Fecha = avance.Fecha == default ? existente.Fecha : avance.Fecha;
@@ -78,6 +86,12 @@ public class AvancesController : ControllerBase
             existente.RegistradoPorUsuarioId = avance.RegistradoPorUsuarioId;
 
         await _context.SaveChangesAsync();
+
+        await RecalcularAvanceObra(avance.ObraId);
+        if (obraAnteriorId != avance.ObraId)
+            await RecalcularAvanceObra(obraAnteriorId);
+        await _context.SaveChangesAsync();
+
         return NoContent();
     }
 
@@ -87,8 +101,14 @@ public class AvancesController : ControllerBase
         var avance = await _context.Avances.FindAsync(id);
         if (avance is null) return NotFound();
 
+        var obraId = avance.ObraId;
+
         _context.Avances.Remove(avance);
         await _context.SaveChangesAsync();
+
+        await RecalcularAvanceObra(obraId);
+        await _context.SaveChangesAsync();
+
         return NoContent();
     }
 
@@ -118,5 +138,29 @@ public class AvancesController : ControllerBase
 
         var url = $"/uploads/avances/{nombreArchivo}";
         return Ok(new { url });
+    }
+
+    private async Task RecalcularAvanceObra(int obraId)
+    {
+        if (obraId <= 0) return;
+
+        var obra = await _context.Obras.FindAsync(obraId);
+        if (obra is null) return;
+
+        var ultimo = await _context.Avances
+            .AsNoTracking()
+            .Where(a => a.ObraId == obraId)
+            .OrderByDescending(a => a.Fecha)
+            .ThenByDescending(a => a.Id)
+            .FirstOrDefaultAsync();
+
+        if (ultimo is null || !ultimo.PorcentajeAvance.HasValue)
+        {
+            obra.Avance = 0;
+        }
+        else
+        {
+            obra.Avance = (int)Math.Round(ultimo.PorcentajeAvance.Value);
+        }
     }
 }
