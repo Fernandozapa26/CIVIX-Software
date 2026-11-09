@@ -11,37 +11,79 @@
   </nav>
 
   <header class="landing__hero">
-    <div class="landing__hero-content">
+    <div class="landing__hero-content landing__fade-in">
       <p class="landing__eyebrow">GESTIÓN INTEGRAL DE OBRA</p>
-      <h1>Controla tus obras, avances y materiales en un solo lugar</h1>
+      <h1 class="landing__title-gradient">Controla tus obras, avances y materiales en un solo lugar</h1>
       <p class="landing__lead">
         CIVIX centraliza el seguimiento de proyectos de construcción: registra obras, controla avances con evidencia fotográfica,
         administra materiales y cotizaciones, y gestiona el acceso por roles.
       </p>
       <div class="landing__cta">
-        <a routerLink="/registro" class="btn btn-warning btn-lg fw-semibold">Comenzar ahora</a>
+        <a routerLink="/registro" class="btn btn-warning btn-lg fw-semibold landing__pulse">Comenzar ahora</a>
         <a routerLink="/login" class="btn btn-outline-light btn-lg">Ya tengo cuenta</a>
+      </div>
+      <div class="landing__stats">
+        <div><strong>4+</strong><span>módulos</span></div>
+        <div><strong>3</strong><span>roles</span></div>
+        <div><strong>100%</strong><span>trazable</span></div>
+      </div>
+    </div>
+
+    <div class="landing__mockup landing__fade-in landing__float">
+      <div class="mockup__bar">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="mockup__body">
+        <div class="mockup__title">Obras</div>
+        <div class="mockup__card">
+          <div class="mockup__row">
+            <span class="mockup__badge">01</span>
+            <span class="mockup__status">En ejecución</span>
+          </div>
+          <div class="mockup__name">Alameda 72</div>
+          <div class="mockup__progress">
+            <div class="mockup__progress-fill" style="width: 68%"></div>
+          </div>
+          <div class="mockup__meta">
+            <span>68% avance</span>
+            <span>42 personas</span>
+          </div>
+        </div>
+        <div class="mockup__card mockup__card--soft">
+          <div class="mockup__row">
+            <span class="mockup__badge">02</span>
+            <span class="mockup__status">En planeación</span>
+          </div>
+          <div class="mockup__name">Torre Norte 14</div>
+          <div class="mockup__progress">
+            <div class="mockup__progress-fill" style="width: 12%"></div>
+          </div>
+          <div class="mockup__meta">
+            <span>12% avance</span>
+            <span>18 personas</span>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
   <section class="landing__features">
-    <div class="feature-card">
+    <div class="feature-card landing__fade-in">
       <i class="bi bi-buildings"></i>
       <h3>Obras</h3>
       <p>Portafolio de proyectos con estado, avance físico, presupuesto y personal asignado.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card landing__fade-in">
       <i class="bi bi-graph-up-arrow"></i>
       <h3>Avances</h3>
       <p>Registra avances por obra con porcentaje y carga de imágenes como evidencia.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card landing__fade-in">
       <i class="bi bi-box-seam"></i>
       <h3>Materiales</h3>
       <p>Catálogo, asignación por obra, estados y retiros de material.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card landing__fade-in">
       <i class="bi bi-file-earmark-text"></i>
       <h3>Cotizaciones</h3>
       <p>Crea y consulta cotizaciones asociadas a cada obra.</p>
