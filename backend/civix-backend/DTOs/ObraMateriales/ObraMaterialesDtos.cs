@@ -40,6 +40,7 @@ namespace civix_backend.DTOs.ObraMateriales
         public string MaterialNombre { get; set; } = string.Empty;
         public string UnidadMedida { get; set; } = string.Empty;
         public int? CotizacionId { get; set; }
+        public string? CotizacionNumero { get; set; }
         public decimal Cantidad { get; set; }
         public decimal CantidadRetirada { get; set; }
         public decimal CantidadDisponible { get; set; }
@@ -99,6 +100,7 @@ namespace civix_backend.DTOs.ObraMateriales
     public class CotizacionOpcionDto
     {
         public int Id { get; set; }
+        public string Numero { get; set; } = string.Empty;
         public DateTime Fecha { get; set; }
         public decimal Total { get; set; }
         public string Estado { get; set; } = string.Empty;

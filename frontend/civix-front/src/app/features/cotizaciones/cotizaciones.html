@@ -1,85 +1,352 @@
 <section class="container-fluid py-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <div>
-            <h1 class="page-title mb-1">Cotizaciones</h1>
-            <p class="text-muted mb-0">
-                Gestión y seguimiento de cotizaciones
-            </p>
-        </div>
-
-        <a routerLink="/app/cotizaciones/nueva" class="btn btn-warning fw-semibold">
-            <i class="bi bi-plus-lg me-2"></i>
-            Nueva cotización
-        </a>
-
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="page-title mb-1">Cotizaciones</h1>
+      <p class="text-muted mb-0">
+        @if (esAdministrador()) {
+          Todas las cotizaciones. Al aprobar una cotización se crea la obra automáticamente.
+        } @else {
+          Las cotizaciones que has elaborado.
+        }
+      </p>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    <a routerLink="/app/cotizaciones/nueva" class="btn btn-warning fw-semibold">
+      <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>
+      Nueva cotización
+    </a>
+  </div>
 
-        <div class="card-header bg-white border-bottom py-3">
-            <h5 class="mb-0 fw-semibold">
-                Listado de cotizaciones
-            </h5>
+  <!-- MENSAJES -->
+  <div aria-live="polite">
+    @if (mensajeExito()) {
+      <div
+        class="alert alert-success d-flex justify-content-between align-items-center"
+        role="status"
+      >
+        <span><i class="bi bi-check-circle me-2" aria-hidden="true"></i>{{ mensajeExito() }}</span>
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Cerrar mensaje"
+          (click)="mensajeExito.set(null)"
+        ></button>
+      </div>
+    }
+    @if (error()) {
+      <div
+        class="alert alert-danger d-flex justify-content-between align-items-center"
+        role="alert"
+      >
+        <span>{{ error() }}</span>
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Cerrar mensaje"
+          (click)="error.set(null)"
+        ></button>
+      </div>
+    }
+  </div>
+
+  <!-- PANEL DE APROBACIÓN -->
+  @if (aprobando(); as cotizacion) {
+    <div class="card border-0 shadow-sm mb-4 panel-aprobar">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h2 class="h5 mb-0 fw-semibold">
+          <i class="bi bi-check2-circle me-2" aria-hidden="true"></i>
+          Aprobar {{ cotizacion.numero }} y crear la obra
+        </h2>
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Cerrar"
+          (click)="cerrarAprobacion()"
+        ></button>
+      </div>
+
+      <form class="card-body" [formGroup]="formAprobar" (ngSubmit)="aprobar()" novalidate>
+        <p class="mb-3">
+          Se creará una obra para <strong>{{ cotizacion.clienteNombre }}</strong> con presupuesto de
+          <strong>{{ formatearPesos(cotizacion.total) }}</strong
+          >. El cliente y el responsable quedarán asignados a la obra.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="apr-nombre" class="form-label fw-semibold">
+              Nombre de la obra <span class="text-danger" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="apr-nombre"
+              type="text"
+              class="form-control"
+              formControlName="nombreObra"
+              maxlength="150"
+              aria-required="true"
+              [class.is-invalid]="invalido(formAprobar.controls.nombreObra)"
+            />
+            <div class="invalid-feedback">Escribe el nombre de la obra.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="apr-responsable" class="form-label fw-semibold">
+              Ingeniero responsable <span class="text-danger" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="apr-responsable"
+              class="form-select"
+              formControlName="responsableId"
+              aria-required="true"
+              [class.is-invalid]="invalido(formAprobar.controls.responsableId)"
+            >
+              <option [ngValue]="0" disabled>Selecciona el ingeniero</option>
+              @for (ingeniero of ingenieros(); track ingeniero.id) {
+                <option [ngValue]="ingeniero.id">
+                  {{ ingeniero.nombre }} ({{ ingeniero.correo }})
+                </option>
+              }
+            </select>
+            <div class="invalid-feedback">Selecciona el ingeniero responsable.</div>
+          </div>
+
+          <div class="col-md-3">
+            <label for="apr-inicio" class="form-label fw-semibold">Fecha de inicio</label>
+            <input id="apr-inicio" type="date" class="form-control" formControlName="fechaInicio" />
+          </div>
+
+          <div class="col-md-3">
+            <label for="apr-fin" class="form-label fw-semibold">Fin estimado</label>
+            <input
+              id="apr-fin"
+              type="date"
+              class="form-control"
+              formControlName="fechaFinEstimada"
+            />
+          </div>
         </div>
 
-        <div class="card-body p-0">
+        @if (errorAprobacion()) {
+          <div class="alert alert-danger mt-3 mb-0" role="alert">{{ errorAprobacion() }}</div>
+        }
 
-            <div class="table-responsive">
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="button" class="btn btn-outline-secondary" (click)="cerrarAprobacion()">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn btn-success fw-semibold"
+            [disabled]="procesandoId() === cotizacion.id"
+          >
+            @if (procesandoId() === cotizacion.id) {
+              <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            } @else {
+              <i class="bi bi-check-lg me-2" aria-hidden="true"></i>
+            }
+            Aprobar y crear obra
+          </button>
+        </div>
+      </form>
+    </div>
+  }
 
-                <table class="table table-hover align-middle mb-0">
+  <!-- LISTADO -->
+  <div class="card border-0 shadow-sm">
+    <div
+      class="card-header bg-white border-bottom py-3 d-flex flex-wrap gap-3 justify-content-between align-items-center"
+    >
+      <div class="filtros" role="group" aria-label="Filtrar por estado">
+        @for (opcion of filtros; track opcion) {
+          <button
+            type="button"
+            class="filtro"
+            [class.activo]="filtro() === opcion"
+            [attr.aria-pressed]="filtro() === opcion"
+            (click)="cambiarFiltro(opcion)"
+          >
+            {{ opcion }}
+          </button>
+        }
+      </div>
 
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4 py-3">N.º</th>
-                            <th>Cliente</th>
-                            <th>Descripción</th>
-                            <th>Fecha</th>
-                            <th>Valor total</th>
-                            <th>Estado</th>
-                            <th class="text-center pe-4">Acciones</th>
-                        </tr>
-                    </thead>
+      <div>
+        <label for="buscar-cotizacion" class="visually-hidden">Buscar cotización</label>
+        <input
+          id="buscar-cotizacion"
+          type="search"
+          class="form-control form-control-sm"
+          placeholder="Buscar número, proyecto o cliente"
+          [value]="busqueda()"
+          (input)="busqueda.set($any($event.target).value)"
+        />
+      </div>
+    </div>
 
-                    <tbody>
-
-                        @for (cotizacion of cotizaciones(); track cotizacion.id) {
-
-                        <tr>
-                            <td class="ps-4">{{ cotizacion.id }}</td>
-                            <td>{{ cotizacion.cliente }}</td>
-                            <td>{{ cotizacion.descripcion }}</td>
-                            <td>{{ cotizacion.fecha }}</td>
-                            <td>{{ cotizacion.total }}</td>
-                            <td>{{ cotizacion.estado }}</td>
-
-                            <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled
-                                    aria-label="Ver cotización">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        } @empty {
-
-                        <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                No hay cotizaciones registradas.
-                            </td>
-                        </tr>
-
+    <div class="card-body p-0">
+      @if (cargando()) {
+        <div
+          class="d-flex align-items-center justify-content-center gap-2 text-muted py-5"
+          role="status"
+        >
+          <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          Cargando cotizaciones…
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <caption class="visually-hidden">
+              Listado de cotizaciones
+            </caption>
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-4 py-3">Número</th>
+                <th scope="col">Proyecto</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Fecha</th>
+                <th scope="col" class="text-end">Total</th>
+                <th scope="col">Estado</th>
+                @if (esAdministrador()) {
+                  <th scope="col">Elaboró</th>
+                }
+                <th scope="col" class="text-end pe-4">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of cotizacionesFiltradas(); track c.id) {
+                <tr>
+                  <td class="ps-4 fw-semibold text-nowrap">{{ c.numero }}</td>
+                  <td>
+                    {{ c.nombreProyecto }}
+                    <span class="d-block small text-secondary">{{ c.cantidadItems }} ítem(s)</span>
+                  </td>
+                  <td>{{ c.clienteNombre || '—' }}</td>
+                  <td class="text-nowrap">{{ formatearFechaCorta(c.fecha) }}</td>
+                  <td class="text-end fw-semibold text-nowrap">{{ formatearPesos(c.total) }}</td>
+                  <td>
+                    <span [class]="claseEstado(c.estado)">{{ c.estado }}</span>
+                    @if (c.obraNombre) {
+                      <a routerLink="/app/obras" class="d-block small mt-1">
+                        <i class="bi bi-buildings me-1" aria-hidden="true"></i>{{ c.obraNombre }}
+                      </a>
+                    }
+                  </td>
+                  @if (esAdministrador()) {
+                    <td class="small">{{ c.creadoPor }}</td>
+                  }
+                  <td class="text-end pe-4 text-nowrap">
+                    @if (confirmacion()?.id === c.id) {
+                      <span class="small me-2">
+                        {{ confirmacion()?.accion === 'anular' ? '¿Anular?' : '¿Rechazar?' }}
+                      </span>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-danger me-1"
+                        [disabled]="procesandoId() === c.id"
+                        (click)="confirmar(c)"
+                      >
+                        Sí
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        (click)="confirmacion.set(null)"
+                      >
+                        No
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-dark me-1"
+                        [disabled]="procesandoId() === c.id"
+                        (click)="descargarPdf(c)"
+                        [attr.aria-label]="'Descargar PDF de ' + c.numero"
+                        title="Descargar PDF"
+                      >
+                        @if (procesandoId() === c.id) {
+                          <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        } @else {
+                          <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
                         }
+                      </button>
 
-                    </tbody>
+                      @if (c.estado === 'Borrador') {
+                        <a
+                          class="btn btn-sm btn-outline-secondary me-1"
+                          [routerLink]="['/app/cotizaciones', c.id, 'editar']"
+                          [attr.aria-label]="'Editar ' + c.numero"
+                          title="Editar"
+                        >
+                          <i class="bi bi-pencil" aria-hidden="true"></i>
+                        </a>
+                      }
 
-                </table>
+                      @if (esAdministrador() && c.estado === 'Borrador') {
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-success me-1"
+                          (click)="abrirAprobacion(c)"
+                          [attr.aria-label]="'Aprobar ' + c.numero"
+                          title="Aprobar y crear obra"
+                        >
+                          <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-warning me-1"
+                          (click)="pedirConfirmacion(c, 'rechazar')"
+                          [attr.aria-label]="'Rechazar ' + c.numero"
+                          title="Rechazar"
+                        >
+                          <i class="bi bi-x-circle" aria-hidden="true"></i>
+                        </button>
+                      }
 
-            </div>
-
+                      @if (c.estado === 'Borrador' || c.estado === 'Rechazada') {
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-danger"
+                          (click)="pedirConfirmacion(c, 'anular')"
+                          [attr.aria-label]="'Anular ' + c.numero"
+                          title="Anular"
+                        >
+                          <i class="bi bi-trash" aria-hidden="true"></i>
+                        </button>
+                      }
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td
+                    [attr.colspan]="esAdministrador() ? 8 : 7"
+                    class="text-center py-5 text-secondary"
+                  >
+                    @if (cotizaciones().length === 0) {
+                      No hay cotizaciones en este estado.
+                    } @else {
+                      Ninguna cotización coincide con la búsqueda.
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+            @if (cotizacionesFiltradas().length > 0) {
+              <tfoot>
+                <tr class="table-light">
+                  <td colspan="4" class="ps-4 fw-semibold">
+                    {{ cotizacionesFiltradas().length }} cotización(es)
+                  </td>
+                  <td class="text-end fw-bold text-nowrap">
+                    {{ formatearPesos(totalFiltrado()) }}
+                  </td>
+                  <td [attr.colspan]="esAdministrador() ? 3 : 2"></td>
+                </tr>
+              </tfoot>
+            }
+          </table>
         </div>
-
+      }
     </div>
-
+  </div>
 </section>

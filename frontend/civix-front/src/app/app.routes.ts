@@ -70,13 +70,23 @@ export const routes: Routes = [
         path: 'cotizaciones',
         title: 'Cotizaciones',
         canActivate: [authGuard],
-        data: { roles: ROLES_TODOS },
+        data: { roles: ROLES_GESTION },
         loadComponent: () =>
           import('./features/cotizaciones/cotizaciones').then((m) => m.Cotizaciones),
       },
       {
         path: 'cotizaciones/nueva',
         title: 'Nueva cotización',
+        canActivate: [authGuard],
+        data: { roles: ROLES_GESTION },
+        loadComponent: () =>
+          import('./features/cotizaciones/components/cotizacion-form/cotizacion-form').then(
+            (m) => m.CotizacionForm,
+          ),
+      },
+      {
+        path: 'cotizaciones/:id/editar',
+        title: 'Editar cotización',
         canActivate: [authGuard],
         data: { roles: ROLES_GESTION },
         loadComponent: () =>
