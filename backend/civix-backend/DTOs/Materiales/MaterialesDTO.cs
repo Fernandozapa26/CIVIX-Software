@@ -14,8 +14,9 @@ namespace civix_backend.DTOs.Materiales
         public String UnidadMedida { get; set; } = string.Empty;
 
       
-        [StringLength(50)]
-        public String Descripcion { get; set; } = string.Empty;
+        // Opcional (la columna admite NULL) y hasta 500 caracteres, igual que en la BD.
+        [StringLength(500)]
+        public string? Descripcion { get; set; }
 
     }
 }

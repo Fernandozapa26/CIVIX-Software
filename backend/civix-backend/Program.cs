@@ -20,6 +20,7 @@ builder.Services.AddDbContext<CivixDbContext>(options =>
 
 // Registro del servicio de materiales
 builder.Services.AddScoped<MaterialesService>();
+builder.Services.AddScoped<ObraMaterialesService>();
 
 // --- Autenticación y autorización ---
 
@@ -100,7 +101,12 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// En desarrollo no se redirige a HTTPS: el frontend llama a http://localhost:5067 y,
+// si la API redirige, el navegador descarta el token y la petición termina en 401.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // El orden importa: CORS -> Autenticación (quién eres) -> Autorización (qué puedes hacer).
 app.UseCors(PoliticaCorsFrontend);

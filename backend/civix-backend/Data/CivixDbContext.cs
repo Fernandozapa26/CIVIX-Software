@@ -27,6 +27,13 @@ namespace civix_backend.Data
 
         public DbSet<ObraUsuario> ObraUsuarios { get; set; } = null!;
 
+        // --- Obras y materiales por obra ---
+        public DbSet<Obra> Obras { get; set; } = null!;
+
+        public DbSet<ObraMaterial> ObraMateriales { get; set; } = null!;
+
+        public DbSet<RetiroMaterial> RetirosMaterial { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
