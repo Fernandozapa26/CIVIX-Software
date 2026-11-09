@@ -49,31 +49,31 @@ export class MainLayout {
     {
       label: 'Inicio',
       icon: 'bi-house-door',
-      route: '/inicio',
+      route: '/app/inicio',
       roles: ROLES_TODOS
     },
     {
       label: 'Obras',
       icon: 'bi-buildings',
-      route: '/obras',
+      route: '/app/obras',
       roles: ROLES_TODOS
     },
     {
       label: 'Cotizaciones',
       icon: 'bi-file-earmark-text',
-      route: '/cotizaciones',
+      route: '/app/cotizaciones',
       roles: ROLES_TODOS
     },
     {
       label: 'Materiales',
       icon: 'bi-box-seam',
-      route: '/materiales',
+      route: '/app/materiales',
       roles: ROLES_GESTION
     },
     {
       label: 'Avances',
       icon: 'bi-graph-up-arrow',
-      route: '/avances',
+      route: '/app/avances',
       roles: ROLES_TODOS
     },
     {

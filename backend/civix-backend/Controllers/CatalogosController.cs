@@ -15,10 +15,27 @@ namespace civix_backend.Controllers
     public class CatalogosController : ControllerBase
     {
         private readonly ObraMaterialesService _servicio;
+        private readonly ObrasService _obras;
 
-        public CatalogosController(ObraMaterialesService servicio)
+        public CatalogosController(ObraMaterialesService servicio, ObrasService obras)
         {
             _servicio = servicio;
+            _obras = obras;
+        }
+
+        /// <summary>
+        /// GET /api/catalogos/usuarios?rol=Cliente — usuarios activos de un rol
+        /// (Cliente o Ingeniero) para asignar como cliente o responsable de una obra.
+        /// </summary>
+        [HttpGet("usuarios")]
+        public async Task<IActionResult> Usuarios([FromQuery] string rol)
+        {
+            if (rol != RolesSistema.Cliente && rol != RolesSistema.Ingeniero)
+            {
+                return BadRequest(new { Mensaje = "El rol debe ser Cliente o Ingeniero." });
+            }
+
+            return Ok(await _obras.ListarUsuariosPorRolAsync(rol));
         }
 
         /// <summary>GET /api/catalogos/obras — obras a las que el usuario tiene acceso.</summary>

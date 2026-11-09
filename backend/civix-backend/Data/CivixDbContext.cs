@@ -30,6 +30,8 @@ namespace civix_backend.Data
         // --- Obras y materiales por obra ---
         public DbSet<Obra> Obras { get; set; } = null!;
 
+        public DbSet<Avance> Avances { get; set; } = null!;
+
         public DbSet<ObraMaterial> ObraMateriales { get; set; } = null!;
 
         public DbSet<RetiroMaterial> RetirosMaterial { get; set; } = null!;

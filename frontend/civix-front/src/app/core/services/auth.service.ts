@@ -16,7 +16,7 @@ import {
 const CLAVE_SESION = 'civix.sesion';
 
 /** Ruta a la que se envía al usuario después de iniciar sesión. Todos los roles pueden verla. */
-export const RUTA_INICIO = '/inicio';
+export const RUTA_INICIO = '/app/inicio';
 
 /**
  * Maneja la sesión del usuario:

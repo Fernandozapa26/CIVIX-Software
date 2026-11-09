@@ -19,6 +19,9 @@ namespace civix_backend.Services
         public static ResultadoOperacion<T> Invalido(string mensaje) =>
             new() { CodigoError = StatusCodes.Status400BadRequest, Mensaje = mensaje };
 
+        public static ResultadoOperacion<T> Conflicto(string mensaje) =>
+            new() { CodigoError = StatusCodes.Status409Conflict, Mensaje = mensaje };
+
         public static ResultadoOperacion<T> Prohibido(string mensaje) =>
             new() { CodigoError = StatusCodes.Status403Forbidden, Mensaje = mensaje };
     }

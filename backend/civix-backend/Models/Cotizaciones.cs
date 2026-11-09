@@ -4,6 +4,8 @@ namespace civix_backend.Models
     {
         public int Id { get; set; }
 
+        public int? ObraId { get; set; }
+
         public DateTime Fecha { get; set; }
 
         public int CreadoPorUsuarioId { get; set; }

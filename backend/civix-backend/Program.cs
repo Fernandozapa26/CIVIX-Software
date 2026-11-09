@@ -21,6 +21,7 @@ builder.Services.AddDbContext<CivixDbContext>(options =>
 // Registro del servicio de materiales
 builder.Services.AddScoped<MaterialesService>();
 builder.Services.AddScoped<ObraMaterialesService>();
+builder.Services.AddScoped<ObrasService>();
 
 // --- Autenticación y autorización ---
 
@@ -109,6 +110,8 @@ if (!app.Environment.IsDevelopment())
 }
 
 // El orden importa: CORS -> Autenticación (quién eres) -> Autorización (qué puedes hacer).
+app.UseStaticFiles();
+
 app.UseCors(PoliticaCorsFrontend);
 
 app.UseAuthentication();
