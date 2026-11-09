@@ -4,6 +4,12 @@
       <i class="bi bi-buildings"></i>
       <span>CIVIX</span>
     </div>
+    <div class="landing__nav-links">
+      <a href="#modulos" (click)="irA('modulos'); $event.preventDefault()">Módulos</a>
+      <a href="#como-funciona" (click)="irA('como-funciona'); $event.preventDefault()">Cómo funciona</a>
+      <a href="#nosotros" (click)="irA('nosotros'); $event.preventDefault()">Quiénes somos</a>
+      <a href="#contacto" (click)="irA('contacto'); $event.preventDefault()">Contacto</a>
+    </div>
     <div class="landing__nav-actions">
       <a routerLink="/login" class="btn btn-outline-light">Iniciar sesión</a>
       <a routerLink="/registro" class="btn btn-warning fw-semibold">Crear cuenta</a>
@@ -25,7 +31,7 @@
       <div class="landing__stats">
         <div><strong>4+</strong><span>módulos</span></div>
         <div><strong>3</strong><span>roles</span></div>
-        <div><strong>100%</strong><span>trazable</span></div>
+        <div><strong>Fotos / por avance</strong><span>evidencia</span></div>
       </div>
     </div>
 
@@ -34,7 +40,7 @@
         <span></span><span></span><span></span>
       </div>
       <div class="mockup__body">
-        <div class="mockup__title">Obras</div>
+        <div class="mockup__title">Obras <span class="mockup__preview">Vista previa</span></div>
         <div class="mockup__card">
           <div class="mockup__row">
             <span class="mockup__badge">01</span>
@@ -67,7 +73,7 @@
     </div>
   </header>
 
-  <section class="landing__features">
+  <section id="modulos" class="landing__features">
     <div class="feature-card landing__fade-in">
       <i class="bi bi-buildings"></i>
       <h3>Obras</h3>
@@ -90,7 +96,111 @@
     </div>
   </section>
 
+  <section id="como-funciona" class="landing__section">
+    <h2 class="landing__section-title">Cómo funciona</h2>
+    <div class="landing__steps">
+      <div class="step-card">
+        <span class="step-card__num">1</span>
+        <h3>Crea la obra</h3>
+        <p>Registra nombre, ubicación, fechas, presupuesto y personal.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-card__num">2</span>
+        <h3>Registra avances</h3>
+        <p>Porcentaje, descripción y fotos como evidencia.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-card__num">3</span>
+        <h3>Consulta el progreso</h3>
+        <p>Cada rol ve la información que le corresponde.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="roles" class="landing__section">
+    <h2 class="landing__section-title">Roles</h2>
+    <div class="landing__roles">
+      <div class="role-card">
+        <i class="bi bi-shield-check"></i>
+        <h3>Administrador</h3>
+        <p>Gestiona usuarios, obras y toda la información del sistema.</p>
+      </div>
+      <div class="role-card">
+        <i class="bi bi-tools"></i>
+        <h3>Ingeniero</h3>
+        <p>Registra obras, avances, materiales y cotizaciones.</p>
+      </div>
+      <div class="role-card">
+        <i class="bi bi-eye"></i>
+        <h3>Cliente</h3>
+        <p>Consulta el estado y los avances de sus obras.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="nosotros" class="landing__section">
+    <h2 class="landing__section-title">Quiénes somos</h2>
+    <div class="landing__mission">
+      <div class="mission-card">
+        <h3>Misión</h3>
+        <p>Facilitar a constructores, ingenieros y clientes el seguimiento de sus obras, centralizando en una sola plataforma la información de avances, materiales y cotizaciones, para tomar decisiones a tiempo y con evidencia.</p>
+      </div>
+      <div class="mission-card">
+        <h3>Visión</h3>
+        <p>Ser para 2028 una herramienta de referencia para pequeñas y medianas constructoras en Colombia, reconocida por hacer la gestión de obra más clara, ordenada y transparente.</p>
+      </div>
+    </div>
+    <p class="landing__sena">CIVIX es un proyecto formativo desarrollado en el SENA.</p>
+  </section>
+
+  <section id="contacto" class="landing__section landing__contacto">
+    <div class="contacto__info">
+      <h2 class="landing__section-title">Contacto</h2>
+      <p>¿Tienes preguntas o quieres saber más? Escríbenos y te responderemos pronto.</p>
+      <p class="contacto__correo">
+        <i class="bi bi-envelope"></i> {{ correoContacto }}
+      </p>
+    </div>
+    <form class="contacto__form" [formGroup]="form" (ngSubmit)="enviarContacto()">
+      <label>
+        Nombre
+        <input type="text" formControlName="nombre" />
+        @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+          <small class="contacto__error">El nombre es obligatorio.</small>
+        }
+      </label>
+      <label>
+        Correo
+        <input type="email" formControlName="correo" />
+        @if (form.controls.correo.touched && form.controls.correo.invalid) {
+          <small class="contacto__error">Ingresa un correo válido.</small>
+        }
+      </label>
+      <label>
+        Mensaje
+        <textarea formControlName="mensaje" rows="4"></textarea>
+        @if (form.controls.mensaje.touched && form.controls.mensaje.invalid) {
+          <small class="contacto__error">El mensaje es obligatorio.</small>
+        }
+      </label>
+      <button type="submit" class="btn btn-warning fw-semibold">Enviar</button>
+    </form>
+  </section>
+
   <footer class="landing__footer">
-    <p>CIVIX · Control de obra · Proyecto final</p>
+    <div class="footer__brand">
+      <i class="bi bi-buildings"></i>
+      <span>CIVIX</span>
+    </div>
+    <div class="footer__links">
+      <a href="#modulos" (click)="irA('modulos'); $event.preventDefault()">Módulos</a>
+      <a href="#como-funciona" (click)="irA('como-funciona'); $event.preventDefault()">Cómo funciona</a>
+      <a href="#nosotros" (click)="irA('nosotros'); $event.preventDefault()">Quiénes somos</a>
+      <a href="#contacto" (click)="irA('contacto'); $event.preventDefault()">Contacto</a>
+    </div>
+    <div class="footer__meta">
+      <span>Proyecto formativo SENA</span>
+      <span>© {{ anioActual }} CIVIX</span>
+    </div>
   </footer>
 </div>
