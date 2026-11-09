@@ -94,17 +94,6 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// CORS para el frontend Angular en desarrollo
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CivixCors", policy =>
-    {
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -120,13 +109,11 @@ if (!app.Environment.IsDevelopment())
 }
 
 // El orden importa: CORS -> Autenticación (quién eres) -> Autorización (qué puedes hacer).
+app.UseStaticFiles();
+
 app.UseCors(PoliticaCorsFrontend);
 
 app.UseAuthentication();
-
-app.UseStaticFiles();
-
-app.UseCors("CivixCors");
 
 app.UseAuthorization();
 

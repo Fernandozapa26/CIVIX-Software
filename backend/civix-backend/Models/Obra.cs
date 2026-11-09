@@ -7,7 +7,7 @@ public class Obra
     public string? Descripcion { get; set; }
     public string? Cliente { get; set; }
     public string? Ubicacion { get; set; }
-    public DateTime FechaInicio { get; set; }
+    public DateTime? FechaInicio { get; set; }
     public DateTime? FechaFinEstimada { get; set; }
     public string Estado { get; set; } = "Planificada";
     public decimal Presupuesto { get; set; }

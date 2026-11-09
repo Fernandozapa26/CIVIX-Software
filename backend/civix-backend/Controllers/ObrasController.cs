@@ -40,8 +40,8 @@ public class ObrasController : ControllerBase
         if (string.IsNullOrWhiteSpace(obra.Nombre))
             return BadRequest("El nombre es obligatorio.");
 
-        if (obra.FechaFinEstimada.HasValue && obra.FechaInicio != default &&
-            obra.FechaFinEstimada.Value < obra.FechaInicio)
+        if (obra.FechaFinEstimada.HasValue && obra.FechaInicio.HasValue &&
+            obra.FechaFinEstimada.Value < obra.FechaInicio.Value)
             return BadRequest("La fecha de fin estimada no puede ser anterior a la fecha de inicio.");
 
         if (obra.Presupuesto < 0)
@@ -70,8 +70,8 @@ public class ObrasController : ControllerBase
         if (string.IsNullOrWhiteSpace(obra.Nombre))
             return BadRequest("El nombre es obligatorio.");
 
-        if (obra.FechaFinEstimada.HasValue && obra.FechaInicio != default &&
-            obra.FechaFinEstimada.Value < obra.FechaInicio)
+        if (obra.FechaFinEstimada.HasValue && obra.FechaInicio.HasValue &&
+            obra.FechaFinEstimada.Value < obra.FechaInicio.Value)
             return BadRequest("La fecha de fin estimada no puede ser anterior a la fecha de inicio.");
 
         if (obra.Presupuesto < 0)
