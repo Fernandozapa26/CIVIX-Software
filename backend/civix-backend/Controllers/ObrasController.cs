@@ -1,136 +1,71 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using civix_backend.Data;
+using civix_backend.DTOs.Obras;
 using civix_backend.Models;
+using civix_backend.Services;
 
 namespace civix_backend.Controllers;
 
+/// <summary>
+/// CRUD de obras.
+/// - Consultar: Administrador (todas), Ingeniero y Cliente (solo sus obras asignadas).
+/// - Crear, editar y eliminar: Administrador e Ingeniero (el ingeniero solo sus obras).
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = RolesSistema.Todos)]
 public class ObrasController : ControllerBase
 {
-    private readonly CivixDbContext _context;
+    private readonly ObrasService _servicio;
 
-    public ObrasController(CivixDbContext context)
+    public ObrasController(ObrasService servicio)
     {
-        _context = context;
+        _servicio = servicio;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Obra>>> ObtenerObras()
+    public async Task<ActionResult<IEnumerable<ObraDto>>> ObtenerObras()
     {
-        var obras = await _context.Obras.AsNoTracking().ToListAsync();
-        return Ok(obras);
+        return Ok(await _servicio.ListarAsync(User));
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Obra>> ObtenerObra(int id)
+    public async Task<IActionResult> ObtenerObra(int id)
     {
-        var obra = await _context.Obras.FindAsync(id);
-        if (obra is null) return NotFound();
-        return Ok(obra);
+        return Responder(await _servicio.ObtenerAsync(User, id));
     }
 
     [HttpPost]
     [Authorize(Roles = RolesSistema.Gestion)]
-    public async Task<ActionResult<Obra>> CrearObra([FromBody] Obra obra)
+    public async Task<IActionResult> CrearObra([FromBody] GuardarObraDto dto)
     {
-        if (string.IsNullOrWhiteSpace(obra.Nombre))
-            return BadRequest("El nombre es obligatorio.");
+        var resultado = await _servicio.CrearAsync(User, dto);
 
-        if (obra.FechaFinEstimada.HasValue && obra.FechaInicio.HasValue &&
-            obra.FechaFinEstimada.Value < obra.FechaInicio.Value)
-            return BadRequest("La fecha de fin estimada no puede ser anterior a la fecha de inicio.");
+        if (!resultado.Exito) return Responder(resultado);
 
-        if (obra.Presupuesto < 0)
-            return BadRequest("El presupuesto no puede ser negativo.");
-
-        if (obra.Personal < 0)
-            return BadRequest("El personal no puede ser negativo.");
-
-        if (obra.FechaCreacion == default)
-            obra.FechaCreacion = DateTime.Now;
-
-        obra.FechaInicio = NormalizarFecha(obra.FechaInicio);
-        if (obra.FechaFinEstimada.HasValue)
-            obra.FechaFinEstimada = NormalizarFecha(obra.FechaFinEstimada.Value);
-
-        _context.Obras.Add(obra);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(ObtenerObra), new { id = obra.Id }, obra);
+        return CreatedAtAction(nameof(ObtenerObra), new { id = resultado.Dato!.Id }, resultado.Dato);
     }
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = RolesSistema.Gestion)]
-    public async Task<IActionResult> ActualizarObra(int id, [FromBody] Obra obra)
+    public async Task<IActionResult> ActualizarObra(int id, [FromBody] GuardarObraDto dto)
     {
-        if (string.IsNullOrWhiteSpace(obra.Nombre))
-            return BadRequest("El nombre es obligatorio.");
-
-        if (obra.FechaFinEstimada.HasValue && obra.FechaInicio.HasValue &&
-            obra.FechaFinEstimada.Value < obra.FechaInicio.Value)
-            return BadRequest("La fecha de fin estimada no puede ser anterior a la fecha de inicio.");
-
-        if (obra.Presupuesto < 0)
-            return BadRequest("El presupuesto no puede ser negativo.");
-
-        if (obra.Personal < 0)
-            return BadRequest("El personal no puede ser negativo.");
-
-        obra.FechaInicio = NormalizarFecha(obra.FechaInicio);
-        if (obra.FechaFinEstimada.HasValue)
-            obra.FechaFinEstimada = NormalizarFecha(obra.FechaFinEstimada.Value);
-
-        var existente = await _context.Obras.FindAsync(id);
-        if (existente is null) return NotFound();
-
-        existente.Nombre = obra.Nombre;
-        existente.Descripcion = obra.Descripcion;
-        existente.Cliente = obra.Cliente;
-        existente.Ubicacion = obra.Ubicacion;
-        existente.FechaInicio = obra.FechaInicio;
-        existente.FechaFinEstimada = obra.FechaFinEstimada;
-        existente.Estado = obra.Estado;
-        existente.Presupuesto = obra.Presupuesto;
-        existente.Avance = obra.Avance;
-        existente.Personal = obra.Personal;
-
-        await _context.SaveChangesAsync();
-        return NoContent();
+        return Responder(await _servicio.ActualizarAsync(User, id, dto));
     }
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = RolesSistema.Gestion)]
     public async Task<IActionResult> EliminarObra(int id)
     {
-        var obra = await _context.Obras.FindAsync(id);
-        if (obra is null) return NotFound();
+        var resultado = await _servicio.EliminarAsync(User, id);
 
-        var tieneAvances = await _context.Avances.AnyAsync(a => a.ObraId == id);
-        var tieneMateriales = await _context.ObraMateriales.AnyAsync(m => m.ObraId == id);
-        var tieneCotizaciones = await _context.Cotizaciones.AnyAsync(c => c.ObraId == id);
-
-        if (tieneAvances || tieneMateriales || tieneCotizaciones)
-            return Conflict("No se puede eliminar la obra porque tiene avances, materiales o cotizaciones asociadas.");
-
-        _context.Obras.Remove(obra);
-        await _context.SaveChangesAsync();
-        return NoContent();
+        return resultado.Exito ? NoContent() : Responder(resultado);
     }
 
-    private static DateTime NormalizarFecha(DateTime value)
+    private IActionResult Responder<T>(ResultadoOperacion<T> resultado)
     {
-        if (value == default) return value;
-        return value.Kind == DateTimeKind.Utc ? value.ToLocalTime().Date : value.Date;
-    }
-
-    private static DateTime? NormalizarFecha(DateTime? value)
-    {
-        if (!value.HasValue || value.Value == default) return value;
-        var v = value.Value;
-        return v.Kind == DateTimeKind.Utc ? v.ToLocalTime().Date : v.Date;
+        return resultado.Exito
+            ? Ok(resultado.Dato)
+            : StatusCode(resultado.CodigoError, new { Mensaje = resultado.Mensaje });
     }
 }

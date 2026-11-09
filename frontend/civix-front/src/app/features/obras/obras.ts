@@ -4,8 +4,10 @@ import { Observable } from 'rxjs';
 import { CurrencyPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { AuthService } from '../../core/services/auth.service';
+import { obtenerMensajeError } from '../../core/utils/http-error';
 import { ObrasService } from './obras.service';
-import { Obra, ObraPayload } from './obra.model';
+import { Obra, ObraPayload, UsuarioOpcion } from './obra.model';
 
 @Component({
   selector: 'app-obras',
@@ -19,6 +21,13 @@ export class Obras implements OnInit {
   private readonly service = inject(ObrasService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
+
+  /** El Cliente solo consulta: no ve los botones de crear, editar ni eliminar. */
+  protected readonly puedeGestionar = computed(() => !this.auth.esSoloLectura());
+
+  protected readonly clientes = signal<UsuarioOpcion[]>([]);
+  protected readonly ingenieros = signal<UsuarioOpcion[]>([]);
 
   protected readonly obras = signal<Obra[]>([]);
   protected readonly cargando = signal(false);
@@ -40,15 +49,17 @@ export class Obras implements OnInit {
       const matchBusqueda =
         term === '' ||
         o.nombre.toLowerCase().includes(term) ||
-        (o.cliente ?? '').toLowerCase().includes(term) ||
-        o.ubicacion.toLowerCase().includes(term);
+        (o.clienteNombre ?? o.cliente ?? '').toLowerCase().includes(term) ||
+        (o.responsableNombre ?? '').toLowerCase().includes(term) ||
+        (o.ubicacion ?? '').toLowerCase().includes(term);
       return matchFiltro && matchBusqueda;
     });
   });
 
   protected readonly form = this.fb.nonNullable.group({
-    nombre: ['', [Validators.required, Validators.maxLength(120)]],
-    cliente: ['', Validators.required],
+    nombre: ['', [Validators.required, Validators.maxLength(150)]],
+    clienteId: [0, [Validators.required, Validators.min(1)]],
+    responsableId: [0, [Validators.required, Validators.min(1)]],
     descripcion: [''],
     ubicacion: ['', Validators.required],
     fechaInicio: ['', Validators.required],
@@ -61,6 +72,9 @@ export class Obras implements OnInit {
 
   ngOnInit(): void {
     this.cargar();
+    if (this.puedeGestionar()) {
+      this.cargarUsuarios();
+    }
     this.route.queryParamMap.subscribe((params) => {
       if (params.get('nueva') === '1') {
         this.nuevaObra();
@@ -83,11 +97,24 @@ export class Obras implements OnInit {
     });
   }
 
+  /** Clientes e ingenieros disponibles para asignar a la obra. */
+  private cargarUsuarios(): void {
+    this.service.listarUsuarios('Cliente').subscribe({
+      next: (lista) => this.clientes.set(lista),
+      error: () => this.clientes.set([]),
+    });
+    this.service.listarUsuarios('Ingeniero').subscribe({
+      next: (lista) => this.ingenieros.set(lista),
+      error: () => this.ingenieros.set([]),
+    });
+  }
+
   protected nuevaObra(): void {
     this.editandoId.set(null);
     this.form.reset({
       nombre: '',
-      cliente: '',
+      clienteId: 0,
+      responsableId: 0,
       descripcion: '',
       ubicacion: '',
       fechaInicio: '',
@@ -104,9 +131,10 @@ export class Obras implements OnInit {
     this.editandoId.set(obra.id);
     this.form.reset({
       nombre: obra.nombre,
-      cliente: obra.cliente ?? '',
+      clienteId: obra.clienteId ?? 0,
+      responsableId: obra.responsableId ?? 0,
       descripcion: obra.descripcion ?? '',
-      ubicacion: obra.ubicacion,
+      ubicacion: obra.ubicacion ?? '',
       fechaInicio: obra.fechaInicio?.slice(0, 10) ?? '',
       fechaFinEstimada: obra.fechaFinEstimada?.slice(0, 10) ?? '',
       estado: obra.estado,
@@ -132,10 +160,11 @@ export class Obras implements OnInit {
     const value = this.form.getRawValue();
     const payload: ObraPayload = {
       nombre: value.nombre,
-      cliente: value.cliente,
+      clienteId: Number(value.clienteId),
+      responsableId: Number(value.responsableId),
       descripcion: value.descripcion || null,
-      ubicacion: value.ubicacion,
-      fechaInicio: value.fechaInicio,
+      ubicacion: value.ubicacion || null,
+      fechaInicio: value.fechaInicio || null,
       fechaFinEstimada: value.fechaFinEstimada || null,
       estado: value.estado,
       presupuesto: value.presupuesto,
@@ -157,7 +186,7 @@ export class Obras implements OnInit {
         this.router.navigate(['/app/obras']);
         this.cargar();
       },
-      error: () => this.error.set('No se pudo guardar la obra.'),
+      error: (err: unknown) => this.error.set(obtenerMensajeError(err, 'No se pudo guardar la obra.')),
     });
   }
 
@@ -184,7 +213,7 @@ export class Obras implements OnInit {
     if (!confirm(`¿Eliminar la obra "${obra.nombre}"?`)) return;
     this.service.eliminar(obra.id).subscribe({
       next: () => this.cargar(),
-      error: () => this.error.set('No se pudo eliminar la obra.'),
+      error: (err: unknown) => this.error.set(obtenerMensajeError(err, 'No se pudo eliminar la obra.')),
     });
   }
 }

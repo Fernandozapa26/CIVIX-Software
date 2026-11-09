@@ -14,7 +14,9 @@
         (input)="busqueda.set($any($event.target).value)"
       />
     </div>
-    <button type="button" class="dashboard__new-btn" (click)="nuevaObra()">+ Nueva obra</button>
+    @if (puedeGestionar()) {
+      <button type="button" class="dashboard__new-btn" (click)="nuevaObra()">+ Nueva obra</button>
+    }
   </div>
 
   <div class="dashboard__filters">
@@ -47,6 +49,10 @@
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
             {{ obra.ubicacion }}
           </p>
+          <p class="project-card__location">
+            Cliente: <strong>{{ obra.clienteNombre || 'Sin asignar' }}</strong>
+            · Responsable: <strong>{{ obra.responsableNombre || 'Sin asignar' }}</strong>
+          </p>
 
           <div class="project-card__progress">
             <div class="project-card__progress-labels">
@@ -69,10 +75,12 @@
             </div>
           </div>
 
-          <div class="project-card__actions">
-            <button type="button" (click)="editar(obra)">Editar</button>
-            <button type="button" (click)="eliminar(obra)">Eliminar</button>
-          </div>
+          @if (puedeGestionar()) {
+            <div class="project-card__actions">
+              <button type="button" (click)="editar(obra)">Editar</button>
+              <button type="button" (click)="eliminar(obra)">Eliminar</button>
+            </div>
+          }
         </article>
       } @empty {
         <p class="dashboard__empty">No hay obras que coincidan con los filtros.</p>
@@ -80,7 +88,7 @@
     </div>
   }
 
-  @if (mostrarFormulario()) {
+  @if (mostrarFormulario() && puedeGestionar()) {
     <form class="obras__form" [formGroup]="form" (ngSubmit)="guardar()">
       <h3>{{ editandoId() === null ? 'Nueva obra' : 'Editar obra' }}</h3>
 
@@ -91,7 +99,22 @@
 
       <label>
         Cliente
-        <input type="text" formControlName="cliente" />
+        <select formControlName="clienteId">
+          <option [ngValue]="0" disabled>Selecciona el cliente</option>
+          @for (cliente of clientes(); track cliente.id) {
+            <option [ngValue]="cliente.id">{{ cliente.nombre }} ({{ cliente.correo }})</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Ingeniero responsable
+        <select formControlName="responsableId">
+          <option [ngValue]="0" disabled>Selecciona el ingeniero</option>
+          @for (ingeniero of ingenieros(); track ingeniero.id) {
+            <option [ngValue]="ingeniero.id">{{ ingeniero.nombre }} ({{ ingeniero.correo }})</option>
+          }
+        </select>
       </label>
 
       <label>

@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Obra, ObraPayload } from './obra.model';
+import { environment } from '../../../environments/environment';
+import { Obra, ObraPayload, UsuarioOpcion } from './obra.model';
 
-const API_URL = 'http://localhost:5067/api/obras';
+const API_URL = `${environment.apiUrl}/obras`;
 
 @Injectable({ providedIn: 'root' })
 export class ObrasService {
@@ -22,11 +23,17 @@ export class ObrasService {
     return this.http.post<Obra>(API_URL, obra);
   }
 
-  actualizar(id: number, obra: ObraPayload): Observable<string> {
-    return this.http.put(`${API_URL}/${id}`, obra, { responseType: 'text' });
+  actualizar(id: number, obra: ObraPayload): Observable<Obra> {
+    return this.http.put<Obra>(`${API_URL}/${id}`, obra);
   }
 
   eliminar(id: number): Observable<string> {
     return this.http.delete(`${API_URL}/${id}`, { responseType: 'text' });
+  }
+
+  /** Usuarios activos con rol Cliente o Ingeniero (selectores del formulario). */
+  listarUsuarios(rol: 'Cliente' | 'Ingeniero'): Observable<UsuarioOpcion[]> {
+    const params = new HttpParams().set('rol', rol);
+    return this.http.get<UsuarioOpcion[]>(`${environment.apiUrl}/catalogos/usuarios`, { params });
   }
 }

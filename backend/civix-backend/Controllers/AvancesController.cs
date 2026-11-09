@@ -17,11 +17,13 @@ public class AvancesController : ControllerBase
 {
     private readonly CivixDbContext _context;
     private readonly IWebHostEnvironment _env;
+    private readonly AccesoObrasService _accesoObras;
 
-    public AvancesController(CivixDbContext context, IWebHostEnvironment env)
+    public AvancesController(CivixDbContext context, IWebHostEnvironment env, AccesoObrasService accesoObras)
     {
         _context = context;
         _env = env;
+        _accesoObras = accesoObras;
     }
 
     [HttpGet]
@@ -30,6 +32,11 @@ public class AvancesController : ControllerBase
         var query = _context.Avances.AsNoTracking().AsQueryable();
         if (obraId.HasValue)
             query = query.Where(a => a.ObraId == obraId.Value);
+
+        // Ingeniero y Cliente solo ven los avances de sus obras asignadas.
+        var permitidas = await _accesoObras.ObtenerObrasPermitidasAsync(User);
+        if (permitidas is not null)
+            query = query.Where(a => permitidas.Contains(a.ObraId));
 
         var avances = await query.OrderByDescending(a => a.Fecha).ToListAsync();
         return Ok(avances);
@@ -40,6 +47,8 @@ public class AvancesController : ControllerBase
     {
         var avance = await _context.Avances.FindAsync(id);
         if (avance is null) return NotFound();
+        if (!await _accesoObras.PuedeAccederAObraAsync(User, avance.ObraId))
+            return Forbid();
         return Ok(avance);
     }
 
@@ -53,6 +62,9 @@ public class AvancesController : ControllerBase
         var obraExiste = await _context.Obras.AnyAsync(o => o.Id == avance.ObraId);
         if (!obraExiste)
             return BadRequest("La obra indicada no existe.");
+
+        if (!await _accesoObras.PuedeAccederAObraAsync(User, avance.ObraId))
+            return Forbid();
 
         if (string.IsNullOrWhiteSpace(avance.Descripcion))
             return BadRequest("La descripcion es obligatoria.");
@@ -91,6 +103,9 @@ public class AvancesController : ControllerBase
         if (!obraExiste)
             return BadRequest("La obra indicada no existe.");
 
+        if (!await _accesoObras.PuedeAccederAObraAsync(User, avance.ObraId))
+            return Forbid();
+
         if (string.IsNullOrWhiteSpace(avance.Descripcion))
             return BadRequest("La descripcion es obligatoria.");
         if (avance.PorcentajeAvance.HasValue && (avance.PorcentajeAvance < 0 || avance.PorcentajeAvance > 100))
@@ -98,6 +113,8 @@ public class AvancesController : ControllerBase
 
         var existente = await _context.Avances.FindAsync(id);
         if (existente is null) return NotFound();
+        if (!await _accesoObras.PuedeAccederAObraAsync(User, existente.ObraId))
+            return Forbid();
 
         var obraAnteriorId = existente.ObraId;
 
@@ -106,8 +123,7 @@ public class AvancesController : ControllerBase
         existente.Descripcion = avance.Descripcion;
         existente.PorcentajeAvance = avance.PorcentajeAvance;
         existente.Imagenes = avance.Imagenes ?? new();
-        if (avance.RegistradoPorUsuarioId != 0)
-            existente.RegistradoPorUsuarioId = avance.RegistradoPorUsuarioId;
+        // RegistradoPorUsuarioId no se cambia: queda el usuario que registró el avance.
 
         await _context.SaveChangesAsync();
 
@@ -125,6 +141,8 @@ public class AvancesController : ControllerBase
     {
         var avance = await _context.Avances.FindAsync(id);
         if (avance is null) return NotFound();
+        if (!await _accesoObras.PuedeAccederAObraAsync(User, avance.ObraId))
+            return Forbid();
 
         var obraId = avance.ObraId;
 

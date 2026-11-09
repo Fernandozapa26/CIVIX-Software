@@ -3,8 +3,9 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Avance, AvancePayload } from './avance.model';
+import { environment } from '../../../environments/environment';
 
-const API_URL = 'http://localhost:5067/api/avances';
+const API_URL = `${environment.apiUrl}/avances`;
 
 @Injectable({ providedIn: 'root' })
 export class AvancesService {
