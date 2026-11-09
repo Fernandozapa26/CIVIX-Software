@@ -61,6 +61,8 @@ public class AvancesController : ControllerBase
 
         if (avance.Fecha == default)
             avance.Fecha = DateTime.Today;
+        else
+            avance.Fecha = NormalizarFecha(avance.Fecha);
         if (avance.Imagenes is null)
             avance.Imagenes = new();
 
@@ -100,7 +102,7 @@ public class AvancesController : ControllerBase
         var obraAnteriorId = existente.ObraId;
 
         existente.ObraId = avance.ObraId;
-        existente.Fecha = avance.Fecha == default ? existente.Fecha : avance.Fecha;
+        existente.Fecha = avance.Fecha == default ? existente.Fecha : NormalizarFecha(avance.Fecha);
         existente.Descripcion = avance.Descripcion;
         existente.PorcentajeAvance = avance.PorcentajeAvance;
         existente.Imagenes = avance.Imagenes ?? new();
@@ -209,5 +211,11 @@ public class AvancesController : ControllerBase
         {
             obra.Avance = (int)Math.Round(ultimo.PorcentajeAvance.Value);
         }
+    }
+
+    private static DateTime NormalizarFecha(DateTime value)
+    {
+        if (value == default) return value;
+        return value.Kind == DateTimeKind.Utc ? value.ToLocalTime().Date : value.Date;
     }
 }

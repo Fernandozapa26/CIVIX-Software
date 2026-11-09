@@ -35,7 +35,7 @@
           <div class="avance-card__header">
             <div>
               <span class="avance-card__obra">{{ nombreObra(avance.obraId) }}</span>
-              <span class="avance-card__fecha">{{ avance.fecha | date:'mediumDate' }}</span>
+              <span class="avance-card__fecha">{{ formatearFecha(avance.fecha) }}</span>
             </div>
             @if (avance.porcentajeAvance !== null && avance.porcentajeAvance !== undefined) {
               <span class="avance-card__pct">{{ avance.porcentajeAvance }}%</span>

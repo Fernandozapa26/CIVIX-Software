@@ -32,8 +32,11 @@ export class Avances implements OnInit {
 
   protected readonly avancesFiltrados = computed(() => {
     const id = this.obraSeleccionada();
-    if (!id) return this.avances();
-    return this.avances().filter((a) => a.obraId === id);
+    const base = id ? this.avances().filter((a) => a.obraId === id) : this.avances();
+    return [...base].sort((a, b) => {
+      if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1;
+      return b.id - a.id;
+    });
   });
 
   protected readonly form = this.fb.nonNullable.group({
@@ -81,7 +84,13 @@ export class Avances implements OnInit {
     this.imagenes.set([]);
     this.form.reset({
       obraId: this.obraSeleccionada() ?? 0,
-      fecha: new Date().toISOString().slice(0, 10),
+      fecha: (() => {
+        const hoy = new Date();
+        const y = hoy.getFullYear();
+        const m = String(hoy.getMonth() + 1).padStart(2, '0');
+        const d = String(hoy.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      })(),
       descripcion: '',
       porcentajeAvance: 0,
     });
@@ -141,7 +150,6 @@ export class Avances implements OnInit {
       descripcion: value.descripcion,
       porcentajeAvance: value.porcentajeAvance,
       imagenes: this.imagenes(),
-      registradoPorUsuarioId: 1,
     };
 
     const id = this.editandoId();
@@ -168,6 +176,15 @@ export class Avances implements OnInit {
       next: () => this.cargar(),
       error: () => this.error.set('No se pudo eliminar el avance.'),
     });
+  }
+
+  protected formatearFecha(fecha: string): string {
+    if (!fecha) return '';
+    const parte = fecha.split('T')[0];
+    const [y, m, d] = parte.split('-');
+    if (!y || !m || !d) return fecha;
+    const date = new Date(Number(y), Number(m) - 1, Number(d));
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   protected nombreObra(id: number): string {

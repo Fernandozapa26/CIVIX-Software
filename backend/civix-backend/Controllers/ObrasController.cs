@@ -53,6 +53,10 @@ public class ObrasController : ControllerBase
         if (obra.FechaCreacion == default)
             obra.FechaCreacion = DateTime.Now;
 
+        obra.FechaInicio = NormalizarFecha(obra.FechaInicio);
+        if (obra.FechaFinEstimada.HasValue)
+            obra.FechaFinEstimada = NormalizarFecha(obra.FechaFinEstimada.Value);
+
         _context.Obras.Add(obra);
         await _context.SaveChangesAsync();
 
@@ -75,6 +79,10 @@ public class ObrasController : ControllerBase
 
         if (obra.Personal < 0)
             return BadRequest("El personal no puede ser negativo.");
+
+        obra.FechaInicio = NormalizarFecha(obra.FechaInicio);
+        if (obra.FechaFinEstimada.HasValue)
+            obra.FechaFinEstimada = NormalizarFecha(obra.FechaFinEstimada.Value);
 
         var existente = await _context.Obras.FindAsync(id);
         if (existente is null) return NotFound();
@@ -111,5 +119,18 @@ public class ObrasController : ControllerBase
         _context.Obras.Remove(obra);
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    private static DateTime NormalizarFecha(DateTime value)
+    {
+        if (value == default) return value;
+        return value.Kind == DateTimeKind.Utc ? value.ToLocalTime().Date : value.Date;
+    }
+
+    private static DateTime? NormalizarFecha(DateTime? value)
+    {
+        if (!value.HasValue || value.Value == default) return value;
+        var v = value.Value;
+        return v.Kind == DateTimeKind.Utc ? v.ToLocalTime().Date : v.Date;
     }
 }
