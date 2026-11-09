@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using civix_backend.Data;
@@ -7,6 +8,7 @@ namespace civix_backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = RolesSistema.Todos)]
 public class ObrasController : ControllerBase
 {
     private readonly CivixDbContext _context;
@@ -32,13 +34,24 @@ public class ObrasController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = RolesSistema.Gestion)]
     public async Task<ActionResult<Obra>> CrearObra([FromBody] Obra obra)
     {
         if (string.IsNullOrWhiteSpace(obra.Nombre))
             return BadRequest("El nombre es obligatorio.");
 
+        if (obra.FechaFinEstimada.HasValue && obra.FechaInicio != default &&
+            obra.FechaFinEstimada.Value < obra.FechaInicio)
+            return BadRequest("La fecha de fin estimada no puede ser anterior a la fecha de inicio.");
+
+        if (obra.Presupuesto < 0)
+            return BadRequest("El presupuesto no puede ser negativo.");
+
+        if (obra.Personal < 0)
+            return BadRequest("El personal no puede ser negativo.");
+
         if (obra.FechaCreacion == default)
-            obra.FechaCreacion = DateTime.UtcNow;
+            obra.FechaCreacion = DateTime.Now;
 
         _context.Obras.Add(obra);
         await _context.SaveChangesAsync();
@@ -47,8 +60,22 @@ public class ObrasController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = RolesSistema.Gestion)]
     public async Task<IActionResult> ActualizarObra(int id, [FromBody] Obra obra)
     {
+        if (string.IsNullOrWhiteSpace(obra.Nombre))
+            return BadRequest("El nombre es obligatorio.");
+
+        if (obra.FechaFinEstimada.HasValue && obra.FechaInicio != default &&
+            obra.FechaFinEstimada.Value < obra.FechaInicio)
+            return BadRequest("La fecha de fin estimada no puede ser anterior a la fecha de inicio.");
+
+        if (obra.Presupuesto < 0)
+            return BadRequest("El presupuesto no puede ser negativo.");
+
+        if (obra.Personal < 0)
+            return BadRequest("El personal no puede ser negativo.");
+
         var existente = await _context.Obras.FindAsync(id);
         if (existente is null) return NotFound();
 
@@ -68,10 +95,18 @@ public class ObrasController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = RolesSistema.Gestion)]
     public async Task<IActionResult> EliminarObra(int id)
     {
         var obra = await _context.Obras.FindAsync(id);
         if (obra is null) return NotFound();
+
+        var tieneAvances = await _context.Avances.AnyAsync(a => a.ObraId == id);
+        var tieneMateriales = await _context.ObraMateriales.AnyAsync(m => m.ObraId == id);
+        var tieneCotizaciones = await _context.Cotizaciones.AnyAsync(c => c.ObraId == id);
+
+        if (tieneAvances || tieneMateriales || tieneCotizaciones)
+            return Conflict("No se puede eliminar la obra porque tiene avances, materiales o cotizaciones asociadas.");
 
         _context.Obras.Remove(obra);
         await _context.SaveChangesAsync();

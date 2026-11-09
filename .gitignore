@@ -27,3 +27,6 @@ Thumbs.db
 *.bak
 *.mdf
 *.ldf
+# Uploads de avances (solo se versiona el .gitkeep)
+backend/civix-backend/wwwroot/uploads/avances/*
+!backend/civix-backend/wwwroot/uploads/avances/.gitkeep

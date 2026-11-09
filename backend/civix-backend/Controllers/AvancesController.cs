@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -5,11 +6,13 @@ using System.IO;
 using System.Linq;
 using civix_backend.Data;
 using civix_backend.Models;
+using civix_backend.Services;
 
 namespace civix_backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = RolesSistema.Todos)]
 public class AvancesController : ControllerBase
 {
     private readonly CivixDbContext _context;
@@ -41,21 +44,30 @@ public class AvancesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = RolesSistema.Gestion)]
     public async Task<ActionResult<Avance>> CrearAvance([FromBody] Avance avance)
     {
         if (avance.ObraId <= 0)
             return BadRequest("La obra es obligatoria.");
+
+        var obraExiste = await _context.Obras.AnyAsync(o => o.Id == avance.ObraId);
+        if (!obraExiste)
+            return BadRequest("La obra indicada no existe.");
+
         if (string.IsNullOrWhiteSpace(avance.Descripcion))
             return BadRequest("La descripcion es obligatoria.");
         if (avance.PorcentajeAvance.HasValue && (avance.PorcentajeAvance < 0 || avance.PorcentajeAvance > 100))
             return BadRequest("El porcentaje debe estar entre 0 y 100.");
 
         if (avance.Fecha == default)
-            avance.Fecha = DateTime.UtcNow;
+            avance.Fecha = DateTime.Today;
         if (avance.Imagenes is null)
             avance.Imagenes = new();
-        if (avance.RegistradoPorUsuarioId == 0)
-            avance.RegistradoPorUsuarioId = 1;
+
+        var usuarioId = AccesoObrasService.ObtenerUsuarioId(User);
+        if (usuarioId is null)
+            return Unauthorized("No se pudo identificar al usuario autenticado.");
+        avance.RegistradoPorUsuarioId = usuarioId.Value;
 
         _context.Avances.Add(avance);
         await _context.SaveChangesAsync();
@@ -67,8 +79,18 @@ public class AvancesController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = RolesSistema.Gestion)]
     public async Task<IActionResult> ActualizarAvance(int id, [FromBody] Avance avance)
     {
+        if (avance.ObraId <= 0)
+            return BadRequest("La obra es obligatoria.");
+
+        var obraExiste = await _context.Obras.AnyAsync(o => o.Id == avance.ObraId);
+        if (!obraExiste)
+            return BadRequest("La obra indicada no existe.");
+
+        if (string.IsNullOrWhiteSpace(avance.Descripcion))
+            return BadRequest("La descripcion es obligatoria.");
         if (avance.PorcentajeAvance.HasValue && (avance.PorcentajeAvance < 0 || avance.PorcentajeAvance > 100))
             return BadRequest("El porcentaje debe estar entre 0 y 100.");
 
@@ -96,12 +118,36 @@ public class AvancesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = RolesSistema.Gestion)]
     public async Task<IActionResult> EliminarAvance(int id)
     {
         var avance = await _context.Avances.FindAsync(id);
         if (avance is null) return NotFound();
 
         var obraId = avance.ObraId;
+
+        foreach (var imagen in avance.Imagenes ?? new List<string>())
+        {
+            if (!imagen.StartsWith("/uploads/avances/", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var nombreArchivo = Path.GetFileName(imagen);
+            if (string.IsNullOrWhiteSpace(nombreArchivo))
+                continue;
+
+            var carpeta = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "avances");
+            var ruta = Path.Combine(carpeta, nombreArchivo);
+
+            try
+            {
+                if (System.IO.File.Exists(ruta))
+                    System.IO.File.Delete(ruta);
+            }
+            catch
+            {
+                // No interrumpir la eliminación del avance si falla el borrado del archivo.
+            }
+        }
 
         _context.Avances.Remove(avance);
         await _context.SaveChangesAsync();
@@ -114,6 +160,7 @@ public class AvancesController : ControllerBase
 
     // Subida de imagenes. Devuelve la URL relativa que puede guardarse en Avance.Imagenes.
     [HttpPost("imagenes")]
+    [Authorize(Roles = RolesSistema.Gestion)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(20_000_000)]
     public async Task<ActionResult<object>> SubirImagen([FromForm] IFormFile archivo)
