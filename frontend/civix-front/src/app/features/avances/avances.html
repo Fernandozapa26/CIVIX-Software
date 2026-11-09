@@ -23,7 +23,9 @@
   }
 
   <div class="dashboard__actions">
-    <button type="button" class="btn-primary" (click)="nuevaAvance()">+ Nuevo avance</button>
+    @if (puedeGestionar()) {
+      <button type="button" class="btn-primary" (click)="nuevaAvance()">+ Nuevo avance</button>
+    }
   </div>
 
   @if (cargando()) {
@@ -50,8 +52,10 @@
             </div>
           }
           <div class="avance-card__actions">
-            <button type="button" (click)="editar(avance)">Editar</button>
-            <button type="button" (click)="eliminar(avance)">Eliminar</button>
+            @if (puedeGestionar()) {
+              <button type="button" (click)="editar(avance)">Editar</button>
+              <button type="button" (click)="eliminar(avance)">Eliminar</button>
+            }
           </div>
         </article>
       } @empty {
@@ -60,7 +64,7 @@
     </div>
   }
 
-  @if (mostrarFormulario()) {
+  @if (mostrarFormulario() && puedeGestionar()) {
     <form class="obras__form" [formGroup]="form" (ngSubmit)="guardar()">
       <h3>{{ editandoId() === null ? 'Nuevo avance' : 'Editar avance' }}</h3>
 

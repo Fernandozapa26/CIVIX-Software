@@ -6,6 +6,7 @@ import { Observable, firstValueFrom } from 'rxjs';
 import { Avance, AvancePayload } from './avance.model';
 import { AvancesService } from './avances.service';
 import { ObrasService } from '../obras/obras.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Obra } from '../obras/obra.model';
 
 @Component({
@@ -19,6 +20,10 @@ export class Avances implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(AvancesService);
   private readonly obrasService = inject(ObrasService);
+  private readonly auth = inject(AuthService);
+
+  /** El Cliente solo consulta: no ve los botones de crear, editar ni eliminar. */
+  protected readonly puedeGestionar = computed(() => !this.auth.esSoloLectura());
 
   protected readonly avances = signal<Avance[]>([]);
   protected readonly obras = signal<Obra[]>([]);
