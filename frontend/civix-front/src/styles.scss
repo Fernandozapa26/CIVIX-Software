@@ -31,6 +31,14 @@
   --civix-fondo: #f3f2ee;
   --civix-borde: #d9dcdd;
   --civix-error: #c0392b;
+
+  /* Alias para el modulo de Obras (estilos existentes) */
+  --civix-sidebar: var(--civix-primary);
+  --civix-bg: var(--civix-background);
+  --civix-card: var(--civix-white);
+  --civix-muted: var(--civix-text-muted);
+  --civix-success: #2e7d32;
+  --civix-info: #1565c0;
 }
 
 /* =========================================
