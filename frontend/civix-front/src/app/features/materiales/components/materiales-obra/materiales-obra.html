@@ -382,7 +382,7 @@
                 </td>
                 <td class="text-nowrap">
                   @if (item.cotizacionId) {
-                    N.º {{ item.cotizacionId }}
+                    {{ item.cotizacionNumero ?? "N.º " + item.cotizacionId }}
                   } @else {
                     <span class="text-secondary">—</span>
                   }

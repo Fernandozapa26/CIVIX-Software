@@ -22,6 +22,7 @@ builder.Services.AddDbContext<CivixDbContext>(options =>
 builder.Services.AddScoped<MaterialesService>();
 builder.Services.AddScoped<ObraMaterialesService>();
 builder.Services.AddScoped<ObrasService>();
+builder.Services.AddScoped<CotizacionesService>();
 
 // --- Autenticación y autorización ---
 

@@ -29,6 +29,7 @@ export interface ObraMaterial {
   materialNombre: string;
   unidadMedida: string;
   cotizacionId: number | null;
+  cotizacionNumero: string | null;
   cantidad: number;
   cantidadRetirada: number;
   cantidadDisponible: number;
@@ -86,6 +87,7 @@ export interface ObraOpcion {
 /** Opción del selector de cotizaciones (GET /api/catalogos/cotizaciones). */
 export interface CotizacionOpcion {
   id: number;
+  numero: string;
   fecha: string;
   total: number;
   estado: string;

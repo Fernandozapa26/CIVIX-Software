@@ -62,7 +62,7 @@ export class MainLayout {
       label: 'Cotizaciones',
       icon: 'bi-file-earmark-text',
       route: '/app/cotizaciones',
-      roles: ROLES_TODOS
+      roles: ROLES_GESTION
     },
     {
       label: 'Materiales',

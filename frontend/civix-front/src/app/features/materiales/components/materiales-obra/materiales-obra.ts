@@ -359,7 +359,7 @@ export class MaterialesObra {
   }
 
   textoCotizacion(c: CotizacionOpcion): string {
-    return `N.º ${c.id} · ${formatearFecha(c.fecha, false)} · ${formatearMoneda(c.total)}`;
+    return `${c.numero} · ${formatearFecha(c.fecha, false)} · ${formatearMoneda(c.total)}`;
   }
 
   unidadMaterial(materialId: number | null): string {
