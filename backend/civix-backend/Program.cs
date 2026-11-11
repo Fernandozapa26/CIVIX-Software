@@ -23,6 +23,7 @@ builder.Services.AddScoped<MaterialesService>();
 builder.Services.AddScoped<ObraMaterialesService>();
 builder.Services.AddScoped<ObrasService>();
 builder.Services.AddScoped<CotizacionesService>();
+builder.Services.AddScoped<InicioService>();
 
 // --- Autenticación y autorización ---
 

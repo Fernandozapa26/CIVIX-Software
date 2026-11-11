@@ -1,0 +1,160 @@
+.inicio-fecha {
+  color: var(--civix-naranja-texto);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Indicadores */
+.kpi {
+  color: inherit;
+  text-decoration: none;
+  border-left: 4px solid var(--civix-accent) !important;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--civix-primary);
+    outline-offset: 2px;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.kpi-icono {
+  color: var(--civix-naranja-texto);
+  font-size: 1.3rem;
+}
+
+.kpi-etiqueta {
+  color: var(--civix-texto-suave);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.kpi-valor {
+  color: var(--civix-primary);
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.kpi-detalle {
+  color: var(--civix-texto-suave);
+  font-size: 0.8rem;
+}
+
+.accesos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Obras */
+.estados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+}
+
+.obra {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--civix-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.progress {
+  height: 8px;
+  background: #eceff1;
+}
+
+.progress-bar {
+  background: var(--civix-accent);
+}
+
+.avance-texto {
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Etiquetas de estado con contraste AA */
+.chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip-ejecucion {
+  background: #e3f3e8;
+  color: #23633d;
+}
+
+.chip-planeacion {
+  background: #e3f0fa;
+  color: #135b8a;
+}
+
+.chip-finalizada {
+  background: #eceff1;
+  color: #37474f;
+}
+
+.chip-suspendida {
+  background: #fdecea;
+  color: #a12a1f;
+}
+
+/* Avances */
+.avance {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--civix-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  img,
+  .avance-sin-foto {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+}
+
+.avance-sin-foto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eceff1;
+  color: var(--civix-texto-suave);
+  font-size: 1.4rem;
+}
+
+.avance-descripcion {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

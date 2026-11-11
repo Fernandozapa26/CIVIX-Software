@@ -1,1 +1,253 @@
-<p>inicio works!</p>
+<section class="container-fluid py-4">
+  <!-- SALUDO -->
+  <header class="mb-4">
+    <p class="inicio-fecha mb-1">{{ fechaHoy }}</p>
+    <h1 class="page-title mb-1">{{ saludo() }}, {{ nombre() }}</h1>
+    <p class="text-muted mb-0">{{ subtitulo() }}</p>
+  </header>
+
+  @if (cargando()) {
+    <div class="d-flex align-items-center gap-2 text-muted py-5" role="status">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      Cargando resumen…
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+      <span>{{ error() }}</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (resumen(); as r) {
+    <!-- INDICADORES -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3">
+        <a routerLink="/app/obras" class="kpi card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <span class="kpi-icono" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+            <span class="kpi-etiqueta">{{ esCliente() ? 'Mis obras' : 'Obras' }}</span>
+            <span class="kpi-valor">{{ r.obrasTotal }}</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-6 col-xl-3">
+        <a routerLink="/app/avances" class="kpi card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <span class="kpi-icono" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
+            <span class="kpi-etiqueta">Avance promedio</span>
+            <span class="kpi-valor">{{ r.avancePromedio }}%</span>
+          </div>
+        </a>
+      </div>
+
+      @if (r.cotizaciones; as c) {
+        <div class="col-6 col-xl-3">
+          <a routerLink="/app/cotizaciones" class="kpi card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <span class="kpi-icono" aria-hidden="true"
+                ><i class="bi bi-file-earmark-text"></i
+              ></span>
+              <span class="kpi-etiqueta">
+                {{ esAdministrador() ? 'Cotizaciones por aprobar' : 'Cotizaciones en borrador' }}
+              </span>
+              <span class="kpi-valor">{{ c.borrador }}</span>
+              <span class="kpi-detalle">{{ formatearPesos(c.valorEnBorrador) }}</span>
+            </div>
+          </a>
+        </div>
+      }
+
+      @if (r.materiales; as m) {
+        <div class="col-6 col-xl-3">
+          <a routerLink="/app/materiales" class="kpi card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <span class="kpi-icono" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+              <span class="kpi-etiqueta">Materiales en bodega</span>
+              <span class="kpi-valor">{{ m.enBodega }}</span>
+              <span class="kpi-detalle">
+                {{ m.pedidos }} pedido(s) · {{ m.retirosUltimos7Dias }} retiro(s) esta semana
+              </span>
+            </div>
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- ACCESOS RÁPIDOS -->
+    @if (!esCliente()) {
+      <nav class="accesos mb-4" aria-label="Accesos rápidos">
+        <a routerLink="/app/cotizaciones/nueva" class="btn btn-warning fw-semibold">
+          <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Nueva cotización
+        </a>
+        <a routerLink="/app/avances" class="btn btn-outline-dark">
+          <i class="bi bi-camera me-2" aria-hidden="true"></i>Registrar avance
+        </a>
+        <a routerLink="/app/materiales" class="btn btn-outline-dark">
+          <i class="bi bi-box-seam me-2" aria-hidden="true"></i>Registrar material
+        </a>
+        <a routerLink="/app/obras" [queryParams]="{ nueva: 1 }" class="btn btn-outline-dark">
+          <i class="bi bi-buildings me-2" aria-hidden="true"></i>Nueva obra
+        </a>
+      </nav>
+    }
+
+    <div class="row g-4">
+      <!-- OBRAS -->
+      <div class="col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0 fw-semibold">{{ esCliente() ? 'Mis obras' : 'Obras recientes' }}</h2>
+            <a routerLink="/app/obras" class="small fw-semibold">Ver todas</a>
+          </div>
+
+          <div class="card-body">
+            @if (r.obrasPorEstado.length > 0) {
+              <ul class="estados mb-3" aria-label="Obras por estado">
+                @for (e of r.obrasPorEstado; track e.estado) {
+                  <li [class]="claseEstadoObra(e.estado)">{{ e.estado }}: {{ e.cantidad }}</li>
+                }
+              </ul>
+            }
+
+            @for (obra of r.obras; track obra.id) {
+              <div class="obra">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div>
+                    <span class="fw-semibold">{{ obra.nombre }}</span>
+                    @if (obra.ubicacion) {
+                      <span class="d-block small text-secondary">
+                        <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ obra.ubicacion }}
+                      </span>
+                    }
+                  </div>
+                  <span [class]="claseEstadoObra(obra.estado)">{{ obra.estado }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                  <div
+                    class="progress flex-grow-1"
+                    role="progressbar"
+                    [attr.aria-label]="'Avance de ' + obra.nombre"
+                    [attr.aria-valuenow]="obra.avance"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    <div class="progress-bar" [style.width.%]="obra.avance"></div>
+                  </div>
+                  <span class="small fw-semibold avance-texto">{{ obra.avance }}%</span>
+                </div>
+              </div>
+            } @empty {
+              <p class="text-secondary mb-0">
+                @if (esCliente()) {
+                  Todavía no tienes obras asignadas.
+                } @else {
+                  No hay obras registradas.
+                }
+              </p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- AVANCES RECIENTES -->
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0 fw-semibold">Últimos avances</h2>
+            <a routerLink="/app/avances" class="small fw-semibold">Ver todos</a>
+          </div>
+
+          <ul class="card-body list-unstyled mb-0 avances">
+            @for (avance of r.avancesRecientes; track avance.id) {
+              <li class="avance">
+                @if (avance.imagen) {
+                  <img
+                    [src]="urlImagen(avance.imagen)"
+                    [alt]="'Foto del avance de ' + avance.obraNombre"
+                  />
+                } @else {
+                  <span class="avance-sin-foto" aria-hidden="true"
+                    ><i class="bi bi-image"></i
+                  ></span>
+                }
+                <div class="flex-grow-1">
+                  <span class="d-block fw-semibold">{{ avance.obraNombre }}</span>
+                  <span class="d-block small avance-descripcion">{{ avance.descripcion }}</span>
+                  <span class="d-block small text-secondary">
+                    {{ formatearFechaCorta(avance.fecha) }}
+                    @if (avance.porcentajeAvance !== null) {
+                      · {{ avance.porcentajeAvance }}%
+                    }
+                  </span>
+                </div>
+              </li>
+            } @empty {
+              <li class="text-secondary">Todavía no hay avances registrados.</li>
+            }
+          </ul>
+        </div>
+      </div>
+
+      <!-- COTIZACIONES PENDIENTES -->
+      @if (r.cotizaciones; as c) {
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div
+              class="card-header bg-white py-3 d-flex justify-content-between align-items-center"
+            >
+              <h2 class="h5 mb-0 fw-semibold">
+                {{
+                  esAdministrador() ? 'Cotizaciones por aprobar' : 'Mis cotizaciones en borrador'
+                }}
+              </h2>
+              <span class="small text-secondary">
+                {{ c.aprobadas }} aprobada(s) · {{ c.rechazadas }} rechazada(s)
+              </span>
+            </div>
+
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <caption class="visually-hidden">
+                    Cotizaciones en borrador
+                  </caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col" class="ps-4">Número</th>
+                      <th scope="col">Proyecto</th>
+                      <th scope="col">Cliente</th>
+                      <th scope="col">Fecha</th>
+                      <th scope="col" class="text-end pe-4">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (p of c.pendientes; track p.id) {
+                      <tr>
+                        <td class="ps-4 fw-semibold text-nowrap">
+                          <a routerLink="/app/cotizaciones">{{ p.numero }}</a>
+                        </td>
+                        <td>{{ p.nombreProyecto }}</td>
+                        <td>{{ p.clienteNombre || '—' }}</td>
+                        <td class="text-nowrap">{{ formatearFechaCorta(p.fecha) }}</td>
+                        <td class="text-end pe-4 fw-semibold text-nowrap">
+                          {{ formatearPesos(p.total) }}
+                        </td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="5" class="text-center text-secondary py-4">
+                          No hay cotizaciones en borrador.
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>
