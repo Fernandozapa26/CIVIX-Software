@@ -7,6 +7,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { Observable } from 'rxjs';
 
 import { RolCivix } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
@@ -230,7 +231,8 @@ export class Usuarios implements OnInit {
     this.guardando.set(true);
     this.errorFormulario.set(null);
 
-    const peticion =
+    // Crear no devuelve datos y actualizar devuelve el usuario: se tratan como Observable<unknown>
+    const peticion: Observable<unknown> =
       id > 0
         ? this.usuariosService.actualizar(id, {
             nombre: nombre.trim(),
