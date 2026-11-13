@@ -7,33 +7,29 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { forkJoin } from 'rxjs';
 
+import { RolCivix } from '../../core/models/auth.models';
+import { AuthService } from '../../core/services/auth.service';
 import { obtenerMensajeError } from '../../core/utils/http-error';
-import { UsuarioOpcion } from '../obras/obra.model';
-import { ObrasService } from '../obras/obras.service';
-import { UsuariosService } from './usuarios.service';
+import { UsuarioAdmin, UsuariosService } from './usuarios.service';
 
-type RolListado = 'Ingeniero' | 'Cliente';
-type FiltroRol = 'Todos' | RolListado;
+type FiltroRol = 'Todos' | RolCivix;
 
-interface UsuarioFila extends UsuarioOpcion {
-  rol: RolListado;
-}
-
-/** Mismas reglas que RegisterDto en el backend: mínimo 8 caracteres, con letras y números. */
+/** Mismas reglas que el backend: mínimo 8 caracteres, con letras y números. */
 const PATRON_PASSWORD = /^(?=.*[A-Za-z])(?=.*\d).+$/;
 
+const ROL_POR_ID: Record<number, RolCivix> = { 1: 'Administrador', 2: 'Ingeniero', 3: 'Cliente' };
+
 const passwordsCoinciden: ValidatorFn = (grupo: AbstractControl): ValidationErrors | null => {
-  const password = grupo.get('password')?.value as string | undefined;
-  const confirmar = grupo.get('confirmar')?.value as string | undefined;
+  const password = (grupo.get('password')?.value as string | undefined) ?? '';
+  const confirmar = (grupo.get('confirmar')?.value as string | undefined) ?? '';
   return password === confirmar ? null : { noCoinciden: true };
 };
 
 /**
  * Administración de usuarios (solo Administrador).
- * Lista los ingenieros y clientes activos (GET /api/catalogos/usuarios?rol=...) y permite
- * crear usuarios con su rol. La API todavía no tiene endpoints para editar ni desactivar.
+ * Lista todos los usuarios con su rol, estado, fecha de registro y obras asignadas;
+ * permite crear, editar, desactivar y reactivar cuentas.
  */
 @Component({
   selector: 'app-usuarios',
@@ -42,43 +38,56 @@ const passwordsCoinciden: ValidatorFn = (grupo: AbstractControl): ValidationErro
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(document:keydown.escape)': 'cerrarFormulario()',
+    '(document:keydown.escape)': 'cerrarVentanas()',
   },
 })
 export class Usuarios implements OnInit {
-  private readonly obrasService = inject(ObrasService);
   private readonly usuariosService = inject(UsuariosService);
+  private readonly auth = inject(AuthService);
   private readonly fb = inject(NonNullableFormBuilder);
 
-  protected readonly usuarios = signal<UsuarioFila[]>([]);
+  protected readonly usuarios = signal<UsuarioAdmin[]>([]);
   protected readonly cargando = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly mensajeExito = signal<string | null>(null);
 
-  protected readonly filtros: readonly FiltroRol[] = ['Todos', 'Ingeniero', 'Cliente'];
+  protected readonly filtros: readonly FiltroRol[] = ['Todos', 'Administrador', 'Ingeniero', 'Cliente'];
   protected readonly filtro = signal<FiltroRol>('Todos');
   protected readonly busqueda = signal('');
+  protected readonly mostrarInactivos = signal(true);
 
-  protected readonly mostrarFormulario = signal(false);
+  /** null = formulario cerrado; 0 = nuevo usuario; > 0 = id del usuario que se edita. */
+  protected readonly editandoId = signal<number | null>(null);
   protected readonly guardando = signal(false);
   protected readonly errorFormulario = signal<string | null>(null);
 
+  protected readonly usuarioADesactivar = signal<UsuarioAdmin | null>(null);
+  protected readonly procesandoId = signal<number | null>(null);
+
+  protected readonly miId = computed(() => this.auth.usuario()?.usuarioId ?? 0);
+
   protected readonly conteo = computed(() => {
     const lista = this.usuarios();
+    const contar = (rol: RolCivix) => lista.filter((u) => u.roles.includes(rol)).length;
     return {
       Todos: lista.length,
-      Ingeniero: lista.filter((u) => u.rol === 'Ingeniero').length,
-      Cliente: lista.filter((u) => u.rol === 'Cliente').length,
+      Administrador: contar('Administrador'),
+      Ingeniero: contar('Ingeniero'),
+      Cliente: contar('Cliente'),
     } satisfies Record<FiltroRol, number>;
   });
+
+  protected readonly totalInactivos = computed(() => this.usuarios().filter((u) => !u.activo).length);
 
   protected readonly usuariosFiltrados = computed(() => {
     const filtro = this.filtro();
     const texto = this.busqueda().trim().toLowerCase();
+    const inactivos = this.mostrarInactivos();
 
     return this.usuarios().filter(
       (u) =>
-        (filtro === 'Todos' || u.rol === filtro) &&
+        (filtro === 'Todos' || u.roles.includes(filtro)) &&
+        (inactivos || u.activo) &&
         (texto === '' ||
           u.nombre.toLowerCase().includes(texto) ||
           u.correo.toLowerCase().includes(texto)),
@@ -90,16 +99,9 @@ export class Usuarios implements OnInit {
       nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(150)]],
       correo: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
       rolId: [2, [Validators.required]],
-      password: [
-        '',
-        [
-          Validators.required,
-          Validators.minLength(8),
-          Validators.maxLength(100),
-          Validators.pattern(PATRON_PASSWORD),
-        ],
-      ],
-      confirmar: ['', [Validators.required]],
+      activo: [true],
+      password: [''],
+      confirmar: [''],
     },
     { validators: passwordsCoinciden },
   );
@@ -112,17 +114,9 @@ export class Usuarios implements OnInit {
     this.cargando.set(true);
     this.error.set(null);
 
-    forkJoin({
-      ingenieros: this.obrasService.listarUsuarios('Ingeniero'),
-      clientes: this.obrasService.listarUsuarios('Cliente'),
-    }).subscribe({
-      next: ({ ingenieros, clientes }) => {
-        const filas: UsuarioFila[] = [
-          ...ingenieros.map((u) => ({ ...u, rol: 'Ingeniero' as const })),
-          ...clientes.map((u) => ({ ...u, rol: 'Cliente' as const })),
-        ].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-
-        this.usuarios.set(filas);
+    this.usuariosService.listar().subscribe({
+      next: (lista) => {
+        this.usuarios.set(lista);
         this.cargando.set(false);
       },
       error: (err: unknown) => {
@@ -141,15 +135,77 @@ export class Usuarios implements OnInit {
       .join('');
   }
 
-  protected abrirFormulario(): void {
-    this.form.reset({ nombre: '', correo: '', rolId: 2, password: '', confirmar: '' });
+  protected rolPrincipal(usuario: UsuarioAdmin): RolCivix | null {
+    return usuario.roles[0] ?? (usuario.rolId ? ROL_POR_ID[usuario.rolId] : null);
+  }
+
+  protected claseRol(rol: RolCivix | null): string {
+    switch (rol) {
+      case 'Administrador':
+        return 'cx-chip cx-chip--danger';
+      case 'Ingeniero':
+        return 'cx-chip cx-chip--info';
+      case 'Cliente':
+        return 'cx-chip cx-chip--warning';
+      default:
+        return 'cx-chip cx-chip--muted';
+    }
+  }
+
+  protected formatearFecha(fecha: string): string {
+    const valor = new Date(fecha);
+    return Number.isNaN(valor.getTime())
+      ? '—'
+      : valor.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  // ---------- Formulario (crear / editar) ----------
+
+  protected esEdicion(): boolean {
+    return (this.editandoId() ?? 0) > 0;
+  }
+
+  protected abrirNuevo(): void {
+    this.prepararFormulario(true);
+    this.form.reset({ nombre: '', correo: '', rolId: 2, activo: true, password: '', confirmar: '' });
+    this.editandoId.set(0);
+  }
+
+  protected abrirEdicion(usuario: UsuarioAdmin): void {
+    this.prepararFormulario(false);
+    this.form.reset({
+      nombre: usuario.nombre,
+      correo: usuario.correo,
+      rolId: usuario.rolId ?? 2,
+      activo: usuario.activo,
+      password: '',
+      confirmar: '',
+    });
+    this.editandoId.set(usuario.id);
+  }
+
+  /** Al crear, la contraseña es obligatoria; al editar es opcional (vacía = no cambiar). */
+  private prepararFormulario(passwordObligatoria: boolean): void {
+    const password = this.form.controls.password;
+    const reglas = [Validators.minLength(8), Validators.maxLength(100), Validators.pattern(PATRON_PASSWORD)];
+    password.setValidators(passwordObligatoria ? [Validators.required, ...reglas] : reglas);
+    this.form.controls.confirmar.setValidators(passwordObligatoria ? [Validators.required] : []);
+    password.updateValueAndValidity();
+    this.form.controls.confirmar.updateValueAndValidity();
     this.errorFormulario.set(null);
-    this.mostrarFormulario.set(true);
   }
 
   protected cerrarFormulario(): void {
     if (!this.guardando()) {
-      this.mostrarFormulario.set(false);
+      this.editandoId.set(null);
+    }
+  }
+
+  protected cerrarVentanas(): void {
+    if (this.usuarioADesactivar()) {
+      this.usuarioADesactivar.set(null);
+    } else {
+      this.cerrarFormulario();
     }
   }
 
@@ -168,23 +224,81 @@ export class Usuarios implements OnInit {
       return;
     }
 
-    const { nombre, correo, rolId, password } = this.form.getRawValue();
+    const { nombre, correo, rolId, activo, password } = this.form.getRawValue();
+    const id = this.editandoId() ?? 0;
+
     this.guardando.set(true);
     this.errorFormulario.set(null);
 
-    this.usuariosService
-      .crear({ nombre: nombre.trim(), correo: correo.trim(), password, rolId: Number(rolId) })
-      .subscribe({
-        next: () => {
-          this.guardando.set(false);
-          this.mostrarFormulario.set(false);
-          this.mensajeExito.set(`Se creó el usuario ${nombre.trim()}.`);
-          this.cargar();
-        },
-        error: (err: unknown) => {
-          this.guardando.set(false);
-          this.errorFormulario.set(obtenerMensajeError(err, 'No se pudo crear el usuario.'));
-        },
-      });
+    const peticion =
+      id > 0
+        ? this.usuariosService.actualizar(id, {
+            nombre: nombre.trim(),
+            correo: correo.trim(),
+            rolId: Number(rolId),
+            activo,
+            password: password ? password : null,
+          })
+        : this.usuariosService.crear({
+            nombre: nombre.trim(),
+            correo: correo.trim(),
+            password,
+            rolId: Number(rolId),
+          });
+
+    peticion.subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.editandoId.set(null);
+        this.mensajeExito.set(
+          id > 0 ? `Se actualizó el usuario ${nombre.trim()}.` : `Se creó el usuario ${nombre.trim()}.`,
+        );
+        this.cargar();
+      },
+      error: (err: unknown) => {
+        this.guardando.set(false);
+        this.errorFormulario.set(obtenerMensajeError(err, 'No se pudo guardar el usuario.'));
+      },
+    });
+  }
+
+  // ---------- Activar / desactivar ----------
+
+  protected pedirDesactivar(usuario: UsuarioAdmin): void {
+    this.usuarioADesactivar.set(usuario);
+  }
+
+  protected confirmarDesactivar(): void {
+    const usuario = this.usuarioADesactivar();
+    if (!usuario) return;
+
+    this.cambiarEstado(usuario, false);
+  }
+
+  protected reactivar(usuario: UsuarioAdmin): void {
+    this.cambiarEstado(usuario, true);
+  }
+
+  private cambiarEstado(usuario: UsuarioAdmin, activo: boolean): void {
+    this.procesandoId.set(usuario.id);
+    const peticion = activo
+      ? this.usuariosService.reactivar(usuario.id)
+      : this.usuariosService.desactivar(usuario.id);
+
+    peticion.subscribe({
+      next: (actualizado) => {
+        this.procesandoId.set(null);
+        this.usuarioADesactivar.set(null);
+        this.usuarios.update((lista) => lista.map((u) => (u.id === actualizado.id ? actualizado : u)));
+        this.mensajeExito.set(
+          activo ? `${usuario.nombre} puede volver a iniciar sesión.` : `${usuario.nombre} quedó inactivo.`,
+        );
+      },
+      error: (err: unknown) => {
+        this.procesandoId.set(null);
+        this.usuarioADesactivar.set(null);
+        this.error.set(obtenerMensajeError(err, 'No se pudo cambiar el estado del usuario.'));
+      },
+    });
   }
 }

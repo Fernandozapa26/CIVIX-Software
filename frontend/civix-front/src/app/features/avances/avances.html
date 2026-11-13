@@ -89,6 +89,12 @@
                   <i class="bi bi-calendar3" aria-hidden="true"></i>
                   <time [attr.datetime]="avance.fecha.slice(0, 10)">{{ formatearFecha(avance.fecha) }}</time>
                 </p>
+                @if (avance.registradoPorNombre) {
+                  <p class="timeline__autor">
+                    <span class="cx-avatar timeline__avatar" aria-hidden="true">{{ iniciales(avance.registradoPorNombre) }}</span>
+                    Registrado por <strong>{{ avance.registradoPorNombre }}</strong>
+                  </p>
+                }
               </div>
 
               @if (avance.porcentajeAvance !== null && avance.porcentajeAvance !== undefined) {

@@ -6,9 +6,13 @@ import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@
 
 import { AuthService } from '../../core/services/auth.service';
 import { claseEstadoObra } from '../../core/utils/estados';
+import { environment } from '../../../environments/environment';
 import { obtenerMensajeError } from '../../core/utils/http-error';
 import { ObrasService } from './obras.service';
 import { Obra, ObraPayload, UsuarioOpcion } from './obra.model';
+
+/** Dirección del servidor sin "/api", para armar la URL de las fotos (/uploads/...). */
+const URL_SERVIDOR = environment.apiUrl.replace(/\/api\/?$/, '');
 
 @Component({
   selector: 'app-obras',
@@ -170,6 +174,10 @@ export class Obras implements OnInit {
       personal: obra.personal,
     });
     this.mostrarFormulario.set(true);
+  }
+
+  protected urlImagen(ruta: string): string {
+    return ruta.startsWith('http') ? ruta : `${URL_SERVIDOR}${ruta}`;
   }
 
   /** True cuando el campo no es válido y el usuario ya lo tocó (para mostrar el mensaje). */

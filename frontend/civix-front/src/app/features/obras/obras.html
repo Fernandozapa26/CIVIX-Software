@@ -63,9 +63,13 @@
     <div class="obras__grid">
       @for (obra of obrasFiltradas(); track obra.id; let i = $index) {
         <article class="project-card cx-card cx-card--interactive cx-animate-in" [style.--i]="i">
-          <!-- Encabezado visual de la tarjeta (las obras aún no tienen fotografía) -->
-          <div class="project-card__cover" aria-hidden="true">
-            <i class="bi bi-buildings"></i>
+          <!-- Portada: foto del avance más reciente o, si no hay fotos, un encabezado gráfico -->
+          <div class="project-card__cover" [class.project-card__cover--photo]="!!obra.imagenPortada">
+            @if (obra.imagenPortada) {
+              <img [src]="urlImagen(obra.imagenPortada)" [alt]="'Foto reciente de ' + obra.nombre" loading="lazy" />
+            } @else {
+              <i class="bi bi-buildings" aria-hidden="true"></i>
+            }
             <span class="project-card__code">OB-{{ (obra.id < 10 ? '0' : '') + obra.id }}</span>
           </div>
 
@@ -373,6 +377,12 @@
         </header>
 
         <div class="cx-modal__body">
+          @if (obra.imagenPortada) {
+            <a class="cx-photo detail__photo" [href]="urlImagen(obra.imagenPortada)" target="_blank" rel="noopener">
+              <img [src]="urlImagen(obra.imagenPortada)" [alt]="'Foto reciente de ' + obra.nombre" />
+            </a>
+          }
+
           <div class="detail__status">
             <span [class]="claseEstadoObra(obra.estado)">{{ obra.estado }}</span>
             <div class="detail__progress">

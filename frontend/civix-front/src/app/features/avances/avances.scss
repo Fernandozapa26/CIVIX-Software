@@ -149,6 +149,25 @@
     }
   }
 
+  &__autor {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.45rem 0 0;
+    color: var(--cx-texto-tenue);
+    font-size: 0.8rem;
+
+    strong {
+      color: var(--cx-texto);
+    }
+  }
+
+  &__avatar {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.6rem;
+  }
+
   &__pct {
     display: flex;
     flex-direction: column;

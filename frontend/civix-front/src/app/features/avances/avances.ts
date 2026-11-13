@@ -242,6 +242,15 @@ export class Avances implements OnInit {
     return control.invalid && control.touched;
   }
 
+  protected iniciales(nombre: string): string {
+    return nombre
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((parte) => parte.charAt(0).toUpperCase())
+      .join('');
+  }
+
   protected urlImagen(ruta: string): string {
     return ruta.startsWith('http') ? ruta : `${URL_SERVIDOR}${ruta}`;
   }
