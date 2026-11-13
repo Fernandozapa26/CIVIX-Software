@@ -6,6 +6,7 @@ import { map } from 'rxjs';
 
 import { ROLES } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
+import { claseEstadoCotizacion } from '../../core/utils/estados';
 import { obtenerMensajeError } from '../../core/utils/http-error';
 import { UsuarioOpcion } from '../obras/obra.model';
 import { ObrasService } from '../obras/obras.service';
@@ -256,7 +257,7 @@ export class Cotizaciones {
   // ---------- Ayudas para la plantilla ----------
 
   claseEstado(estado: EstadoCotizacion): string {
-    return `estado estado-${estado.toLowerCase()}`;
+    return claseEstadoCotizacion(estado);
   }
 
   invalido(control: { invalid: boolean; touched: boolean }): boolean {

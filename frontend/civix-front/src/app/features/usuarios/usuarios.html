@@ -1,0 +1,235 @@
+<section class="usuarios">
+  <header class="cx-page-header">
+    <div>
+      <p class="cx-eyebrow">Administración</p>
+      <h1 class="cx-title">Usuarios</h1>
+      <p class="cx-subtitle">Ingenieros y clientes activos que se pueden asignar a las obras.</p>
+    </div>
+
+    <div class="cx-page-actions">
+      <button type="button" class="cx-btn cx-btn--primary" (click)="abrirFormulario()">
+        <i class="bi bi-person-plus" aria-hidden="true"></i>Nuevo usuario
+      </button>
+    </div>
+  </header>
+
+  <div aria-live="polite">
+    @if (mensajeExito()) {
+      <div class="alert alert-success d-flex justify-content-between align-items-center" role="status">
+        <span><i class="bi bi-check-circle me-2" aria-hidden="true"></i>{{ mensajeExito() }}</span>
+        <button type="button" class="btn-close" aria-label="Cerrar mensaje" (click)="mensajeExito.set(null)"></button>
+      </div>
+    }
+    @if (error()) {
+      <div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+        <span>{{ error() }}</span>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="cargar()">Reintentar</button>
+      </div>
+    }
+  </div>
+
+  <article class="card border-0">
+    <div class="card-header bg-white py-3 d-flex flex-wrap gap-3 justify-content-between align-items-center">
+      <div class="cx-segmented" role="group" aria-label="Filtrar por rol">
+        @for (opcion of filtros; track opcion) {
+          <button
+            type="button"
+            class="cx-segment"
+            [class.is-active]="filtro() === opcion"
+            [attr.aria-pressed]="filtro() === opcion"
+            (click)="filtro.set(opcion)"
+          >
+            {{ opcion === 'Todos' ? 'Todos' : opcion === 'Ingeniero' ? 'Ingenieros' : 'Clientes' }}
+            <span class="usuarios__count">{{ conteo()[opcion] }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="cx-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <label for="buscar-usuario" class="visually-hidden">Buscar usuario</label>
+        <input
+          id="buscar-usuario"
+          type="search"
+          placeholder="Buscar por nombre o correo"
+          [value]="busqueda()"
+          (input)="busqueda.set($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    @if (cargando()) {
+      <div class="cx-loading" role="status">
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        Cargando usuarios…
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <caption class="visually-hidden">Listado de usuarios</caption>
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="ps-4">Usuario</th>
+              <th scope="col">Correo</th>
+              <th scope="col">Rol</th>
+              <th scope="col" class="pe-4">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of usuariosFiltrados(); track u.id + u.rol) {
+              <tr>
+                <td class="ps-4">
+                  <span class="usuario">
+                    <span class="cx-avatar" [class.usuario__avatar--cliente]="u.rol === 'Cliente'" aria-hidden="true">
+                      {{ iniciales(u.nombre) }}
+                    </span>
+                    <span class="usuario__nombre">{{ u.nombre }}</span>
+                  </span>
+                </td>
+                <td>
+                  <a class="usuario__correo" [href]="'mailto:' + u.correo">{{ u.correo }}</a>
+                </td>
+                <td>
+                  <span class="cx-chip" [class.cx-chip--info]="u.rol === 'Ingeniero'" [class.cx-chip--warning]="u.rol === 'Cliente'">
+                    {{ u.rol }}
+                  </span>
+                </td>
+                <td class="pe-4"><span class="cx-chip cx-chip--success">Activo</span></td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center text-secondary py-5">
+                  @if (usuarios().length === 0) {
+                    Todavía no hay ingenieros ni clientes registrados.
+                  } @else {
+                    Ningún usuario coincide con la búsqueda.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </article>
+
+  <p class="usuarios__nota">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    La API todavía no ofrece endpoints para editar o desactivar usuarios ni para listar administradores;
+    estas acciones aparecerán aquí cuando el backend las incluya.
+  </p>
+
+  <!-- NUEVO USUARIO -->
+  @if (mostrarFormulario()) {
+    <div class="cx-modal-backdrop" (click)="cerrarFormulario()">
+      <form
+        class="cx-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-form-usuario"
+        [formGroup]="form"
+        (ngSubmit)="guardar()"
+        (click)="$event.stopPropagation()"
+        novalidate
+      >
+        <header class="cx-modal__header">
+          <div>
+            <h2 id="titulo-form-usuario">Nuevo usuario</h2>
+            <p>El usuario podrá iniciar sesión con este correo y contraseña.</p>
+          </div>
+          <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrarFormulario()"></button>
+        </header>
+
+        <div class="cx-modal__body">
+          @if (errorFormulario()) {
+            <div class="alert alert-danger" role="alert">{{ errorFormulario() }}</div>
+          }
+
+          <fieldset class="cx-modal__section">
+            <legend class="cx-modal__section-title">Datos personales</legend>
+            <div class="cx-form-grid">
+              <div class="cx-col-full">
+                <label for="usuario-nombre" class="form-label">Nombre completo *</label>
+                <input
+                  id="usuario-nombre"
+                  type="text"
+                  class="form-control"
+                  formControlName="nombre"
+                  autocomplete="off"
+                  [class.is-invalid]="invalido(form.controls.nombre)"
+                />
+                <div class="invalid-feedback">El nombre debe tener entre 3 y 150 caracteres.</div>
+              </div>
+
+              <div>
+                <label for="usuario-correo" class="form-label">Correo electrónico *</label>
+                <input
+                  id="usuario-correo"
+                  type="email"
+                  class="form-control"
+                  formControlName="correo"
+                  autocomplete="off"
+                  [class.is-invalid]="invalido(form.controls.correo)"
+                />
+                <div class="invalid-feedback">Escribe un correo válido.</div>
+              </div>
+
+              <div>
+                <label for="usuario-rol" class="form-label">Rol *</label>
+                <select id="usuario-rol" class="form-select" formControlName="rolId">
+                  <option [ngValue]="2">Ingeniero</option>
+                  <option [ngValue]="3">Cliente</option>
+                  <option [ngValue]="1">Administrador</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cx-modal__section">
+            <legend class="cx-modal__section-title">Acceso</legend>
+            <div class="cx-form-grid">
+              <div>
+                <label for="usuario-password" class="form-label">Contraseña *</label>
+                <input
+                  id="usuario-password"
+                  type="password"
+                  class="form-control"
+                  formControlName="password"
+                  autocomplete="new-password"
+                  aria-describedby="ayuda-password"
+                  [class.is-invalid]="invalido(form.controls.password)"
+                />
+                <div id="ayuda-password" class="form-text">Mínimo 8 caracteres, con letras y números.</div>
+              </div>
+
+              <div>
+                <label for="usuario-confirmar" class="form-label">Confirmar contraseña *</label>
+                <input
+                  id="usuario-confirmar"
+                  type="password"
+                  class="form-control"
+                  formControlName="confirmar"
+                  autocomplete="new-password"
+                  [class.is-invalid]="confirmacionInvalida()"
+                />
+                <div class="invalid-feedback">Las contraseñas no coinciden.</div>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <footer class="cx-modal__footer">
+          <button type="button" class="cx-btn cx-btn--secondary" (click)="cerrarFormulario()">Cancelar</button>
+          <button type="submit" class="cx-btn cx-btn--primary" [disabled]="guardando()">
+            @if (guardando()) {
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            } @else {
+              <i class="bi bi-check-lg" aria-hidden="true"></i>
+            }
+            Crear usuario
+          </button>
+        </footer>
+      </form>
+    </div>
+  }
+</section>

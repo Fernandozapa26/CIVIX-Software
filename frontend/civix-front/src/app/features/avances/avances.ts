@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { Observable, firstValueFrom } from 'rxjs';
 import { Avance, AvancePayload } from './avance.model';
@@ -8,13 +7,21 @@ import { AvancesService } from './avances.service';
 import { ObrasService } from '../obras/obras.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Obra } from '../obras/obra.model';
+import { environment } from '../../../environments/environment';
+import { claseEstadoObra } from '../../core/utils/estados';
+
+/** Dirección del servidor sin "/api", para armar la URL de las fotos (/uploads/...). */
+const URL_SERVIDOR = environment.apiUrl.replace(/\/api\/?$/, '');
 
 @Component({
   selector: 'app-avances',
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule],
   templateUrl: './avances.html',
   styleUrl: './avances.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'cerrarVentanas()',
+  },
 })
 export class Avances implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -34,6 +41,23 @@ export class Avances implements OnInit {
   protected readonly obraSeleccionada = signal<number | null>(null);
   protected readonly subiendo = signal(false);
   protected readonly imagenes = signal<string[]>([]);
+
+  protected readonly avanceAEliminar = signal<Avance | null>(null);
+  protected readonly eliminando = signal(false);
+  protected readonly guardando = signal(false);
+
+  protected readonly claseEstadoObra = claseEstadoObra;
+
+  /** Obra elegida en el selector (para mostrar su estado y avance actual). */
+  protected readonly obraActual = computed(() => {
+    const id = this.obraSeleccionada();
+    return id ? (this.obras().find((o) => o.id === id) ?? null) : null;
+  });
+
+  /** Cantidad de fotos registradas en los avances visibles. */
+  protected readonly totalFotos = computed(() =>
+    this.avancesFiltrados().reduce((total, a) => total + a.imagenes.length, 0),
+  );
 
   protected readonly avancesFiltrados = computed(() => {
     const id = this.obraSeleccionada();
@@ -164,23 +188,74 @@ export class Avances implements OnInit {
         : this.service.actualizar(id, payload)
     ) as Observable<unknown>;
 
+    this.guardando.set(true);
+
     request$.subscribe({
       next: () => {
+        this.guardando.set(false);
         this.mostrarFormulario.set(false);
         this.editandoId.set(null);
         this.imagenes.set([]);
         this.cargar();
       },
-      error: () => this.error.set('No se pudo guardar el avance.'),
+      error: () => {
+        this.guardando.set(false);
+        this.error.set('No se pudo guardar el avance.');
+      },
     });
   }
 
+  /** Abre la ventana de confirmación antes de eliminar. */
   protected eliminar(avance: Avance): void {
-    if (!confirm('¿Eliminar este avance?')) return;
+    this.avanceAEliminar.set(avance);
+  }
+
+  protected confirmarEliminacion(): void {
+    const avance = this.avanceAEliminar();
+    if (!avance) return;
+
+    this.eliminando.set(true);
     this.service.eliminar(avance.id).subscribe({
-      next: () => this.cargar(),
-      error: () => this.error.set('No se pudo eliminar el avance.'),
+      next: () => {
+        this.eliminando.set(false);
+        this.avanceAEliminar.set(null);
+        this.cargar();
+      },
+      error: () => {
+        this.eliminando.set(false);
+        this.avanceAEliminar.set(null);
+        this.error.set('No se pudo eliminar el avance.');
+      },
     });
+  }
+
+  /** Escape cierra la ventana abierta (primero la confirmación, luego el formulario). */
+  protected cerrarVentanas(): void {
+    if (this.avanceAEliminar()) {
+      this.avanceAEliminar.set(null);
+    } else if (this.mostrarFormulario()) {
+      this.cancelar();
+    }
+  }
+
+  protected invalido(control: AbstractControl): boolean {
+    return control.invalid && control.touched;
+  }
+
+  protected urlImagen(ruta: string): string {
+    return ruta.startsWith('http') ? ruta : `${URL_SERVIDOR}${ruta}`;
+  }
+
+  /** Día y mes por separado para el marcador de la línea de tiempo. */
+  protected partesFecha(fecha: string): { dia: string; mes: string; anio: string } {
+    const [y, m, d] = (fecha ?? '').split('T')[0].split('-');
+    if (!y || !m || !d) return { dia: '', mes: '', anio: '' };
+    const date = new Date(Number(y), Number(m) - 1, Number(d));
+    return {
+      dia: d,
+      mes: date.toLocaleDateString('es-CO', { month: 'short' }).replace('.', ''),
+      anio: y,
+    };
   }
 
   protected formatearFecha(fecha: string): string {
@@ -189,7 +264,12 @@ export class Avances implements OnInit {
     const [y, m, d] = parte.split('-');
     if (!y || !m || !d) return fecha;
     const date = new Date(Number(y), Number(m) - 1, Number(d));
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('es-CO', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   }
 
   protected nombreObra(id: number): string {

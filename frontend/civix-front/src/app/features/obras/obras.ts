@@ -2,9 +2,10 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { CurrencyPipe } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AuthService } from '../../core/services/auth.service';
+import { claseEstadoObra } from '../../core/utils/estados';
 import { obtenerMensajeError } from '../../core/utils/http-error';
 import { ObrasService } from './obras.service';
 import { Obra, ObraPayload, UsuarioOpcion } from './obra.model';
@@ -15,6 +16,9 @@ import { Obra, ObraPayload, UsuarioOpcion } from './obra.model';
   templateUrl: './obras.html',
   styleUrl: './obras.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'cerrarVentanas()',
+  },
 })
 export class Obras implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -36,6 +40,29 @@ export class Obras implements OnInit {
   protected readonly mostrarFormulario = signal(false);
   protected readonly busqueda = signal('');
   protected readonly filtro = signal('Todas');
+
+  /** Filtros por estado que se muestran como pestañas. */
+  protected readonly filtros = ['Todas', 'En ejecución', 'En planeación', 'Finalizada'] as const;
+
+  /** Obra abierta en la ventana de detalle y obra pendiente de confirmar su eliminación. */
+  protected readonly obraDetalle = signal<Obra | null>(null);
+  protected readonly obraAEliminar = signal<Obra | null>(null);
+  protected readonly eliminando = signal(false);
+  protected readonly guardando = signal(false);
+
+  protected readonly claseEstadoObra = claseEstadoObra;
+
+  /** Cantidad de obras por pestaña de filtro (para mostrarla junto al nombre). */
+  protected readonly conteoPorFiltro = computed(() => {
+    const obras = this.obras();
+    const conteo: Record<string, number> = { Todas: obras.length };
+    for (const filtro of this.filtros) {
+      if (filtro !== 'Todas') {
+        conteo[filtro] = obras.filter((o) => o.estado === filtro).length;
+      }
+    }
+    return conteo;
+  });
 
   protected readonly obrasFiltradas = computed(() => {
     const term = this.busqueda().trim().toLowerCase();
@@ -145,6 +172,32 @@ export class Obras implements OnInit {
     this.mostrarFormulario.set(true);
   }
 
+  /** True cuando el campo no es válido y el usuario ya lo tocó (para mostrar el mensaje). */
+  protected invalido(control: AbstractControl): boolean {
+    return control.invalid && control.touched;
+  }
+
+  protected verDetalle(obra: Obra): void {
+    this.obraDetalle.set(obra);
+  }
+
+  /** Desde la ventana de detalle se puede pasar directamente a editar. */
+  protected editarDesdeDetalle(obra: Obra): void {
+    this.obraDetalle.set(null);
+    this.editar(obra);
+  }
+
+  /** Escape cierra la ventana que esté abierta, empezando por la de más arriba. */
+  protected cerrarVentanas(): void {
+    if (this.obraAEliminar()) {
+      this.obraAEliminar.set(null);
+    } else if (this.obraDetalle()) {
+      this.obraDetalle.set(null);
+    } else if (this.mostrarFormulario()) {
+      this.cancelar();
+    }
+  }
+
   protected cancelar(): void {
     this.mostrarFormulario.set(false);
     this.editandoId.set(null);
@@ -179,14 +232,20 @@ export class Obras implements OnInit {
         : this.service.actualizar(id, payload)
     ) as Observable<unknown>;
 
+    this.guardando.set(true);
+
     request$.subscribe({
       next: () => {
+        this.guardando.set(false);
         this.mostrarFormulario.set(false);
         this.editandoId.set(null);
         this.router.navigate(['/app/obras']);
         this.cargar();
       },
-      error: (err: unknown) => this.error.set(obtenerMensajeError(err, 'No se pudo guardar la obra.')),
+      error: (err: unknown) => {
+        this.guardando.set(false);
+        this.error.set(obtenerMensajeError(err, 'No se pudo guardar la obra.'));
+      },
     });
   }
 
@@ -209,11 +268,28 @@ export class Obras implements OnInit {
     return map[estado] ?? `● ${estado}`;
   }
 
+  /** Abre la ventana de confirmación antes de eliminar. */
   protected eliminar(obra: Obra): void {
-    if (!confirm(`¿Eliminar la obra "${obra.nombre}"?`)) return;
+    this.obraDetalle.set(null);
+    this.obraAEliminar.set(obra);
+  }
+
+  protected confirmarEliminacion(): void {
+    const obra = this.obraAEliminar();
+    if (!obra) return;
+
+    this.eliminando.set(true);
     this.service.eliminar(obra.id).subscribe({
-      next: () => this.cargar(),
-      error: (err: unknown) => this.error.set(obtenerMensajeError(err, 'No se pudo eliminar la obra.')),
+      next: () => {
+        this.eliminando.set(false);
+        this.obraAEliminar.set(null);
+        this.cargar();
+      },
+      error: (err: unknown) => {
+        this.eliminando.set(false);
+        this.obraAEliminar.set(null);
+        this.error.set(obtenerMensajeError(err, 'No se pudo eliminar la obra.'));
+      },
     });
   }
 }

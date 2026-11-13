@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { ContadorDirective } from '../../../../core/directives/contador.directive';
 import { obtenerMensajeError } from '../../../../core/utils/http-error';
 import {
   CotizacionOpcion,
@@ -38,7 +39,7 @@ type FiltroEstado = EstadoMaterial | 'Todos';
  */
 @Component({
   selector: 'app-materiales-obra',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ContadorDirective],
   templateUrl: './materiales-obra.html',
   styleUrl: './materiales-obra.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -350,11 +351,11 @@ export class MaterialesObra {
   claseEstado(estado: EstadoMaterial): string {
     switch (estado) {
       case 'Pedido':
-        return 'estado estado-pedido';
+        return 'cx-chip cx-chip--warning';
       case 'En bodega':
-        return 'estado estado-bodega';
+        return 'cx-chip cx-chip--info';
       default:
-        return 'estado estado-retirado';
+        return 'cx-chip cx-chip--success';
     }
   }
 

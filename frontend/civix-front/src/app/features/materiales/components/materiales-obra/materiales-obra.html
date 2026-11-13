@@ -1,37 +1,17 @@
 <!-- RESUMEN -->
-<div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3">
-    <div class="card border-0 shadow-sm h-100 resumen">
-      <div class="card-body">
-        <span class="resumen-etiqueta">Registros</span>
-        <span class="resumen-valor">{{ resumen().total }}</span>
-      </div>
+<div class="resumen-grid mb-4">
+  @for (dato of [
+    { etiqueta: 'Registros', valor: resumen().total, icono: 'bi-list-check', tono: 'base' },
+    { etiqueta: 'Pedidos', valor: resumen().pedido, icono: 'bi-truck', tono: 'pedido' },
+    { etiqueta: 'En bodega', valor: resumen().enBodega, icono: 'bi-box-seam', tono: 'bodega' },
+    { etiqueta: 'Retirados', valor: resumen().retirado, icono: 'bi-box-arrow-up-right', tono: 'retirado' }
+  ]; track dato.etiqueta; let i = $index) {
+    <div class="resumen cx-card cx-card--interactive cx-animate-in" [class]="'resumen--' + dato.tono" [style.--i]="i">
+      <span class="resumen-icono" aria-hidden="true"><i class="bi" [class]="dato.icono"></i></span>
+      <span class="resumen-etiqueta">{{ dato.etiqueta }}</span>
+      <span class="resumen-valor" [cxContador]="dato.valor"></span>
     </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="card border-0 shadow-sm h-100 resumen resumen-pedido">
-      <div class="card-body">
-        <span class="resumen-etiqueta">Pedidos</span>
-        <span class="resumen-valor">{{ resumen().pedido }}</span>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="card border-0 shadow-sm h-100 resumen resumen-bodega">
-      <div class="card-body">
-        <span class="resumen-etiqueta">En bodega</span>
-        <span class="resumen-valor">{{ resumen().enBodega }}</span>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="card border-0 shadow-sm h-100 resumen resumen-retirado">
-      <div class="card-body">
-        <span class="resumen-etiqueta">Retirados</span>
-        <span class="resumen-valor">{{ resumen().retirado }}</span>
-      </div>
-    </div>
-  </div>
+  }
 </div>
 
 <!-- MENSAJES -->

@@ -1,8 +1,9 @@
-<section class="container-fluid py-4">
-  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+<section class="cotizaciones">
+  <header class="cx-page-header">
     <div>
-      <h1 class="page-title mb-1">Cotizaciones</h1>
-      <p class="text-muted mb-0">
+      <p class="cx-eyebrow">Presupuestos y aprobaciones</p>
+      <h1 class="cx-title">Cotizaciones</h1>
+      <p class="cx-subtitle">
         @if (esAdministrador()) {
           Todas las cotizaciones. Al aprobar una cotización se crea la obra automáticamente.
         } @else {
@@ -11,11 +12,13 @@
       </p>
     </div>
 
-    <a routerLink="/app/cotizaciones/nueva" class="btn btn-warning fw-semibold">
-      <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>
-      Nueva cotización
-    </a>
-  </div>
+    <div class="cx-page-actions">
+      <a routerLink="/app/cotizaciones/nueva" class="cx-btn cx-btn--primary">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        Nueva cotización
+      </a>
+    </div>
+  </header>
 
   <!-- MENSAJES -->
   <div aria-live="polite">
@@ -156,12 +159,12 @@
     <div
       class="card-header bg-white border-bottom py-3 d-flex flex-wrap gap-3 justify-content-between align-items-center"
     >
-      <div class="filtros" role="group" aria-label="Filtrar por estado">
+      <div class="cx-segmented" role="group" aria-label="Filtrar por estado">
         @for (opcion of filtros; track opcion) {
           <button
             type="button"
-            class="filtro"
-            [class.activo]="filtro() === opcion"
+            class="cx-segment"
+            [class.is-active]="filtro() === opcion"
             [attr.aria-pressed]="filtro() === opcion"
             (click)="cambiarFiltro(opcion)"
           >
@@ -170,12 +173,12 @@
         }
       </div>
 
-      <div>
+      <div class="cx-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
         <label for="buscar-cotizacion" class="visually-hidden">Buscar cotización</label>
         <input
           id="buscar-cotizacion"
           type="search"
-          class="form-control form-control-sm"
           placeholder="Buscar número, proyecto o cliente"
           [value]="busqueda()"
           (input)="busqueda.set($any($event.target).value)"
@@ -185,10 +188,7 @@
 
     <div class="card-body p-0">
       @if (cargando()) {
-        <div
-          class="d-flex align-items-center justify-content-center gap-2 text-muted py-5"
-          role="status"
-        >
+        <div class="cx-loading" role="status">
           <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
           Cargando cotizaciones…
         </div>
