@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Linq;
 using civix_backend.Data;
+using civix_backend.DTOs.Avances;
 using civix_backend.Models;
 using civix_backend.Services;
 
@@ -27,7 +28,7 @@ public class AvancesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Avance>>> ObtenerAvances([FromQuery] int? obraId)
+    public async Task<ActionResult<IEnumerable<AvanceDto>>> ObtenerAvances([FromQuery] int? obraId)
     {
         var query = _context.Avances.AsNoTracking().AsQueryable();
         if (obraId.HasValue)
@@ -39,17 +40,23 @@ public class AvancesController : ControllerBase
             query = query.Where(a => permitidas.Contains(a.ObraId));
 
         var avances = await query.OrderByDescending(a => a.Fecha).ToListAsync();
-        return Ok(avances);
+
+        // Nombre de quien registró cada avance (una sola consulta para todos).
+        var nombres = await NombresDeUsuariosAsync(avances.Select(a => a.RegistradoPorUsuarioId));
+
+        return Ok(avances.Select(a => AvanceDto.Desde(a, nombres.GetValueOrDefault(a.RegistradoPorUsuarioId))));
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Avance>> ObtenerAvance(int id)
+    public async Task<ActionResult<AvanceDto>> ObtenerAvance(int id)
     {
         var avance = await _context.Avances.FindAsync(id);
         if (avance is null) return NotFound();
         if (!await _accesoObras.PuedeAccederAObraAsync(User, avance.ObraId))
             return Forbid();
-        return Ok(avance);
+
+        var nombres = await NombresDeUsuariosAsync(new[] { avance.RegistradoPorUsuarioId });
+        return Ok(AvanceDto.Desde(avance, nombres.GetValueOrDefault(avance.RegistradoPorUsuarioId)));
     }
 
     [HttpPost]
@@ -205,6 +212,17 @@ public class AvancesController : ControllerBase
 
         var url = $"/uploads/avances/{nombreArchivo}";
         return Ok(new { url });
+    }
+
+    /// <summary>Diccionario Id → Nombre de los usuarios indicados.</summary>
+    private async Task<Dictionary<int, string>> NombresDeUsuariosAsync(IEnumerable<int> usuarioIds)
+    {
+        var ids = usuarioIds.Distinct().ToList();
+
+        return await _context.Usuarios
+            .AsNoTracking()
+            .Where(u => ids.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.Nombre);
     }
 
     private async Task RecalcularAvanceObra(int obraId)

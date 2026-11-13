@@ -1,23 +1,26 @@
-<section class="container-fluid py-4">
-  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+<section class="cotizacion-form">
+  <header class="cx-page-header">
     <div>
-      <h1 class="page-title mb-1">
+      <p class="cx-eyebrow">Cotizaciones</p>
+      <h1 class="cx-title">
         @if (esEdicion()) {
           Editar cotización {{ cotizacion()?.numero }}
         } @else {
           Nueva cotización
         }
       </h1>
-      <p class="text-muted mb-0">
+      <p class="cx-subtitle">
         Registra el cliente, el proyecto y los ítems. El total se calcula automáticamente.
       </p>
     </div>
 
-    <a routerLink="/app/cotizaciones" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>
-      Volver
-    </a>
-  </div>
+    <div class="cx-page-actions">
+      <a routerLink="/app/cotizaciones" class="cx-btn cx-btn--secondary">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        Volver
+      </a>
+    </div>
+  </header>
 
   @if (bloqueada()) {
     <div class="alert alert-warning" role="alert">

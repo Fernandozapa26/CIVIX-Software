@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard, guestGuard } from './core/guards/auth.guard';
-import { ROLES_GESTION, ROLES_TODOS } from './core/models/auth.models';
+import { ROLES, ROLES_GESTION, ROLES_TODOS } from './core/models/auth.models';
 
 export const routes: Routes = [
   // Landing pública
@@ -93,6 +93,14 @@ export const routes: Routes = [
           import('./features/cotizaciones/components/cotizacion-form/cotizacion-form').then(
             (m) => m.CotizacionForm,
           ),
+      },
+      {
+        // Usuarios: solo Administrador
+        path: 'usuarios',
+        title: 'Usuarios',
+        canActivate: [authGuard],
+        data: { roles: [ROLES.administrador] },
+        loadComponent: () => import('./features/usuarios/usuarios').then((m) => m.Usuarios),
       },
       {
         path: 'materiales',

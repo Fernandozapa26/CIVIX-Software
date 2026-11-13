@@ -248,6 +248,21 @@ namespace civix_backend.Services
                 })
                 .ToListAsync();
 
+            // Portada: primera foto del avance más reciente que tenga imágenes.
+            // Las imágenes se guardan como texto separado por comas, por eso se filtran en memoria.
+            var avancesConFotos = await _context.Avances
+                .AsNoTracking()
+                .Where(a => ids.Contains(a.ObraId))
+                .OrderByDescending(a => a.Fecha)
+                .ThenByDescending(a => a.Id)
+                .Select(a => new { a.ObraId, a.Imagenes })
+                .ToListAsync();
+
+            var portadas = avancesConFotos
+                .Where(a => a.Imagenes.Count > 0)
+                .GroupBy(a => a.ObraId)
+                .ToDictionary(g => g.Key, g => g.First().Imagenes[0]);
+
             return obras.Select(o =>
             {
                 var cliente = asignaciones.FirstOrDefault(a => a.ObraId == o.Id && a.Roles.Contains(RolesSistema.Cliente));
@@ -270,7 +285,8 @@ namespace civix_backend.Services
                     ClienteId = cliente?.UsuarioId,
                     ClienteNombre = cliente?.Nombre ?? o.Cliente,
                     ResponsableId = responsable?.UsuarioId,
-                    ResponsableNombre = responsable?.Nombre
+                    ResponsableNombre = responsable?.Nombre,
+                    ImagenPortada = portadas.GetValueOrDefault(o.Id)
                 };
             }).ToList();
         }

@@ -1,13 +1,60 @@
-<section class="container-fluid py-4">
-  <!-- SALUDO -->
-  <header class="mb-4">
-    <p class="inicio-fecha mb-1">{{ fechaHoy }}</p>
-    <h1 class="page-title mb-1">{{ saludo() }}, {{ nombre() }}</h1>
-    <p class="text-muted mb-0">{{ subtitulo() }}</p>
+<section class="inicio">
+  <!-- BIENVENIDA -->
+  <header class="welcome">
+    <div class="welcome__text">
+      <p class="welcome__date">{{ fechaHoy }}</p>
+      <h1 class="welcome__title">{{ saludo() }}, {{ nombre() }}</h1>
+      <p class="welcome__desc">{{ subtitulo() }}</p>
+
+      @if (resumen()) {
+        <p class="welcome__status">
+          <i class="bi bi-activity" aria-hidden="true"></i>
+          {{ estadoGeneral() }}
+        </p>
+      }
+
+      @if (!esCliente()) {
+        <nav class="welcome__actions" aria-label="Accesos rápidos">
+          <a routerLink="/app/cotizaciones/nueva" class="cx-btn cx-btn--primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>Nueva cotización
+          </a>
+          <a routerLink="/app/avances" class="cx-btn welcome__ghost">
+            <i class="bi bi-camera" aria-hidden="true"></i>Registrar avance
+          </a>
+          <a routerLink="/app/materiales" class="cx-btn welcome__ghost">
+            <i class="bi bi-box-seam" aria-hidden="true"></i>Registrar material
+          </a>
+          <a routerLink="/app/obras" [queryParams]="{ nueva: 1 }" class="cx-btn welcome__ghost">
+            <i class="bi bi-buildings" aria-hidden="true"></i>Nueva obra
+          </a>
+        </nav>
+      }
+    </div>
+
+    <!-- Ilustración de obra (decorativa) -->
+    <svg class="welcome__art" viewBox="0 0 320 200" fill="none" aria-hidden="true">
+      <g stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M40 186h260" />
+        <path d="M82 186V52" />
+        <path d="M70 186l12-24 12 24" />
+        <path d="M82 52h150" />
+        <path d="M82 52l-26 0" />
+        <path d="M82 52l18-22h0" />
+        <path d="M100 30v22" />
+        <path d="M82 70l18-18M100 52l18 18" opacity=".5" />
+        <path d="M56 52v14h-10v-14" />
+        <path d="M206 52v46" stroke-dasharray="4 5" />
+        <rect x="194" y="98" width="24" height="16" rx="2" />
+        <path d="M150 186V122h70v64" />
+        <path d="M228 186V96h52v90" />
+        <path d="M160 136h14v12h-14zM186 136h14v12h-14zM160 160h14v12h-14zM186 160h14v12h-14z" opacity=".55" />
+        <path d="M238 110h12v10h-12zM258 110h12v10h-12zM238 132h12v10h-12zM258 132h12v10h-12zM238 154h12v10h-12zM258 154h12v10h-12z" opacity=".55" />
+      </g>
+    </svg>
   </header>
 
   @if (cargando()) {
-    <div class="d-flex align-items-center gap-2 text-muted py-5" role="status">
+    <div class="cx-loading" role="status">
       <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
       Cargando resumen…
     </div>
@@ -20,234 +67,280 @@
     </div>
   } @else if (resumen(); as r) {
     <!-- INDICADORES -->
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-xl-3">
-        <a routerLink="/app/obras" class="kpi card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <span class="kpi-icono" aria-hidden="true"><i class="bi bi-buildings"></i></span>
-            <span class="kpi-etiqueta">{{ esCliente() ? 'Mis obras' : 'Obras' }}</span>
-            <span class="kpi-valor">{{ r.obrasTotal }}</span>
-          </div>
-        </a>
-      </div>
+    <div class="kpis" [class.kpis--2]="!r.cotizaciones && !r.materiales">
+      <a routerLink="/app/obras" class="kpi cx-card cx-card--interactive cx-animate-in" style="--i: 0">
+        <span class="kpi__icon" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+        <span class="kpi__label">{{ esCliente() ? 'Mis obras' : 'Total de obras' }}</span>
+        <span class="kpi__value" [cxContador]="r.obrasTotal"></span>
+        <span class="kpi__hint">
+          <i class="bi bi-circle-fill kpi__dot" aria-hidden="true"></i>
+          {{ obrasEnEjecucion() }} en ejecución
+        </span>
+      </a>
 
-      <div class="col-6 col-xl-3">
-        <a routerLink="/app/avances" class="kpi card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <span class="kpi-icono" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
-            <span class="kpi-etiqueta">Avance promedio</span>
-            <span class="kpi-valor">{{ r.avancePromedio }}%</span>
-          </div>
-        </a>
-      </div>
+      <a routerLink="/app/avances" class="kpi cx-card cx-card--interactive cx-animate-in" style="--i: 1">
+        <span class="kpi__icon" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
+        <span class="kpi__label">Avance promedio</span>
+        <span class="kpi__value" [cxContador]="r.avancePromedio" cxContadorSufijo="%"></span>
+        <span class="cx-progress kpi__progress" aria-hidden="true">
+          <span class="cx-progress__fill" [style.width.%]="r.avancePromedio"></span>
+        </span>
+      </a>
 
       @if (r.cotizaciones; as c) {
-        <div class="col-6 col-xl-3">
-          <a routerLink="/app/cotizaciones" class="kpi card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <span class="kpi-icono" aria-hidden="true"
-                ><i class="bi bi-file-earmark-text"></i
-              ></span>
-              <span class="kpi-etiqueta">
-                {{ esAdministrador() ? 'Cotizaciones por aprobar' : 'Cotizaciones en borrador' }}
-              </span>
-              <span class="kpi-valor">{{ c.borrador }}</span>
-              <span class="kpi-detalle">{{ formatearPesos(c.valorEnBorrador) }}</span>
-            </div>
-          </a>
-        </div>
+        <a routerLink="/app/cotizaciones" class="kpi cx-card cx-card--interactive cx-animate-in" style="--i: 2">
+          <span class="kpi__icon" aria-hidden="true"><i class="bi bi-file-earmark-text"></i></span>
+          <span class="kpi__label">
+            {{ esAdministrador() ? 'Cotizaciones por aprobar' : 'Cotizaciones en borrador' }}
+          </span>
+          <span class="kpi__value" [cxContador]="c.borrador"></span>
+          <span class="kpi__hint">{{ formatearPesos(c.valorEnBorrador) }} en juego</span>
+        </a>
       }
 
       @if (r.materiales; as m) {
-        <div class="col-6 col-xl-3">
-          <a routerLink="/app/materiales" class="kpi card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <span class="kpi-icono" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
-              <span class="kpi-etiqueta">Materiales en bodega</span>
-              <span class="kpi-valor">{{ m.enBodega }}</span>
-              <span class="kpi-detalle">
-                {{ m.pedidos }} pedido(s) · {{ m.retirosUltimos7Dias }} retiro(s) esta semana
-              </span>
-            </div>
-          </a>
-        </div>
+        <a routerLink="/app/materiales" class="kpi cx-card cx-card--interactive cx-animate-in" style="--i: 3">
+          <span class="kpi__icon" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+          <span class="kpi__label">Materiales en bodega</span>
+          <span class="kpi__value" [cxContador]="m.enBodega"></span>
+          <span class="kpi__hint">
+            {{ m.pedidos }} pedido(s) · {{ m.retirosUltimos7Dias }} retiro(s) esta semana
+          </span>
+        </a>
       }
     </div>
 
-    <!-- ACCESOS RÁPIDOS -->
-    @if (!esCliente()) {
-      <nav class="accesos mb-4" aria-label="Accesos rápidos">
-        <a routerLink="/app/cotizaciones/nueva" class="btn btn-warning fw-semibold">
-          <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Nueva cotización
-        </a>
-        <a routerLink="/app/avances" class="btn btn-outline-dark">
-          <i class="bi bi-camera me-2" aria-hidden="true"></i>Registrar avance
-        </a>
-        <a routerLink="/app/materiales" class="btn btn-outline-dark">
-          <i class="bi bi-box-seam me-2" aria-hidden="true"></i>Registrar material
-        </a>
-        <a routerLink="/app/obras" [queryParams]="{ nueva: 1 }" class="btn btn-outline-dark">
-          <i class="bi bi-buildings me-2" aria-hidden="true"></i>Nueva obra
-        </a>
-      </nav>
-    }
+    <div class="board">
+      <!-- OBRAS RECIENTES -->
+      <article class="cx-card board__main cx-animate-in" style="--i: 2">
+        <header class="cx-card__header">
+          <h2>{{ esCliente() ? 'Mis obras' : 'Obras recientes' }}</h2>
+          <a routerLink="/app/obras" class="cx-link">
+            Ver todas <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </a>
+        </header>
 
-    <div class="row g-4">
-      <!-- OBRAS -->
-      <div class="col-lg-7">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h2 class="h5 mb-0 fw-semibold">{{ esCliente() ? 'Mis obras' : 'Obras recientes' }}</h2>
-            <a routerLink="/app/obras" class="small fw-semibold">Ver todas</a>
-          </div>
+        <ul class="obras-list">
+          @for (obra of r.obras; track obra.id) {
+            <li class="obra-row">
+              <span class="obra-row__icon" aria-hidden="true"><i class="bi bi-building"></i></span>
 
-          <div class="card-body">
-            @if (r.obrasPorEstado.length > 0) {
-              <ul class="estados mb-3" aria-label="Obras por estado">
-                @for (e of r.obrasPorEstado; track e.estado) {
-                  <li [class]="claseEstadoObra(e.estado)">{{ e.estado }}: {{ e.cantidad }}</li>
-                }
-              </ul>
-            }
-
-            @for (obra of r.obras; track obra.id) {
-              <div class="obra">
-                <div class="d-flex justify-content-between align-items-start gap-2">
-                  <div>
-                    <span class="fw-semibold">{{ obra.nombre }}</span>
-                    @if (obra.ubicacion) {
-                      <span class="d-block small text-secondary">
-                        <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ obra.ubicacion }}
-                      </span>
-                    }
-                  </div>
-                  <span [class]="claseEstadoObra(obra.estado)">{{ obra.estado }}</span>
-                </div>
-                <div class="d-flex align-items-center gap-2 mt-2">
-                  <div
-                    class="progress flex-grow-1"
-                    role="progressbar"
-                    [attr.aria-label]="'Avance de ' + obra.nombre"
-                    [attr.aria-valuenow]="obra.avance"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                  >
-                    <div class="progress-bar" [style.width.%]="obra.avance"></div>
-                  </div>
-                  <span class="small fw-semibold avance-texto">{{ obra.avance }}%</span>
-                </div>
+              <div class="obra-row__info">
+                <span class="obra-row__name">{{ obra.nombre }}</span>
+                <span class="obra-row__meta">
+                  @if (obra.ubicacion) {
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>{{ obra.ubicacion }}
+                  } @else {
+                    Sin ubicación registrada
+                  }
+                </span>
               </div>
-            } @empty {
-              <p class="text-secondary mb-0">
+
+              <span [class]="claseEstadoObra(obra.estado)">{{ obra.estado }}</span>
+
+              <div class="obra-row__progress">
+                <div
+                  class="cx-progress"
+                  role="progressbar"
+                  [attr.aria-label]="'Avance de ' + obra.nombre"
+                  [attr.aria-valuenow]="obra.avance"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                  <div
+                    class="cx-progress__fill"
+                    [class.cx-progress__fill--done]="obra.avance >= 100"
+                    [style.width.%]="obra.avance"
+                  ></div>
+                </div>
+                <span class="obra-row__pct">{{ obra.avance }}%</span>
+              </div>
+
+              <a
+                routerLink="/app/obras"
+                class="cx-btn cx-btn--ghost cx-btn--sm"
+                [attr.aria-label]="'Ver detalles de ' + obra.nombre"
+              >
+                Ver <i class="bi bi-chevron-right" aria-hidden="true"></i>
+              </a>
+            </li>
+          } @empty {
+            <li class="cx-empty">
+              <i class="bi bi-buildings" aria-hidden="true"></i>
+              <p>
                 @if (esCliente()) {
                   Todavía no tienes obras asignadas.
                 } @else {
                   No hay obras registradas.
                 }
               </p>
-            }
-          </div>
-        </div>
-      </div>
+            </li>
+          }
+        </ul>
+      </article>
 
-      <!-- AVANCES RECIENTES -->
-      <div class="col-lg-5">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h2 class="h5 mb-0 fw-semibold">Últimos avances</h2>
-            <a routerLink="/app/avances" class="small fw-semibold">Ver todos</a>
-          </div>
+      <!-- ACTIVIDAD RECIENTE -->
+      <article class="cx-card board__side cx-animate-in" style="--i: 3">
+        <header class="cx-card__header">
+          <h2>Actividad reciente</h2>
+          <a routerLink="/app/avances" class="cx-link">
+            Ver avances <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </a>
+        </header>
 
-          <ul class="card-body list-unstyled mb-0 avances">
-            @for (avance of r.avancesRecientes; track avance.id) {
-              <li class="avance">
-                @if (avance.imagen) {
-                  <img
-                    [src]="urlImagen(avance.imagen)"
-                    [alt]="'Foto del avance de ' + avance.obraNombre"
-                  />
-                } @else {
-                  <span class="avance-sin-foto" aria-hidden="true"
-                    ><i class="bi bi-image"></i
-                  ></span>
-                }
-                <div class="flex-grow-1">
-                  <span class="d-block fw-semibold">{{ avance.obraNombre }}</span>
-                  <span class="d-block small avance-descripcion">{{ avance.descripcion }}</span>
-                  <span class="d-block small text-secondary">
-                    {{ formatearFechaCorta(avance.fecha) }}
-                    @if (avance.porcentajeAvance !== null) {
-                      · {{ avance.porcentajeAvance }}%
-                    }
-                  </span>
-                </div>
-              </li>
-            } @empty {
-              <li class="text-secondary">Todavía no hay avances registrados.</li>
-            }
-          </ul>
-        </div>
-      </div>
-
-      <!-- COTIZACIONES PENDIENTES -->
-      @if (r.cotizaciones; as c) {
-        <div class="col-12">
-          <div class="card border-0 shadow-sm">
-            <div
-              class="card-header bg-white py-3 d-flex justify-content-between align-items-center"
-            >
-              <h2 class="h5 mb-0 fw-semibold">
-                {{
-                  esAdministrador() ? 'Cotizaciones por aprobar' : 'Mis cotizaciones en borrador'
-                }}
-              </h2>
-              <span class="small text-secondary">
-                {{ c.aprobadas }} aprobada(s) · {{ c.rechazadas }} rechazada(s)
+        <ol class="activity">
+          @for (item of actividad(); track item.clave) {
+            <li class="activity__item" [class.activity__item--quote]="item.tipo === 'cotizacion'">
+              <span class="activity__marker" aria-hidden="true">
+                <i class="bi" [class]="item.tipo === 'avance' ? 'bi-camera' : 'bi-file-earmark-text'"></i>
               </span>
-            </div>
 
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                  <caption class="visually-hidden">
-                    Cotizaciones en borrador
-                  </caption>
-                  <thead class="table-light">
-                    <tr>
-                      <th scope="col" class="ps-4">Número</th>
-                      <th scope="col">Proyecto</th>
-                      <th scope="col">Cliente</th>
-                      <th scope="col">Fecha</th>
-                      <th scope="col" class="text-end pe-4">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (p of c.pendientes; track p.id) {
-                      <tr>
-                        <td class="ps-4 fw-semibold text-nowrap">
-                          <a routerLink="/app/cotizaciones">{{ p.numero }}</a>
-                        </td>
-                        <td>{{ p.nombreProyecto }}</td>
-                        <td>{{ p.clienteNombre || '—' }}</td>
-                        <td class="text-nowrap">{{ formatearFechaCorta(p.fecha) }}</td>
-                        <td class="text-end pe-4 fw-semibold text-nowrap">
-                          {{ formatearPesos(p.total) }}
-                        </td>
-                      </tr>
-                    } @empty {
-                      <tr>
-                        <td colspan="5" class="text-center text-secondary py-4">
-                          No hay cotizaciones en borrador.
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
+              <div class="activity__content">
+                <a [routerLink]="item.enlace" class="activity__title">{{ item.titulo }}</a>
+                <p class="activity__detail">{{ item.detalle }}</p>
+                <span class="activity__meta">
+                  {{ item.tipo === 'avance' ? 'Avance registrado' : (esAdministrador() ? 'Pendiente de aprobación' : 'En borrador') }}
+                  · {{ formatearFechaCorta(item.fecha) }}
+                  @if (item.extra) {
+                    · {{ item.extra }}
+                  }
+                </span>
               </div>
-            </div>
-          </div>
-        </div>
-      }
+
+              @if (item.imagen) {
+                <span class="cx-photo activity__photo">
+                  <img [src]="urlImagen(item.imagen)" [alt]="'Foto del avance de ' + item.titulo" loading="lazy" />
+                </span>
+              }
+            </li>
+          } @empty {
+            <li class="cx-empty activity__empty">
+              <i class="bi bi-clock-history" aria-hidden="true"></i>
+              <p>Todavía no hay actividad registrada.</p>
+            </li>
+          }
+        </ol>
+      </article>
     </div>
+
+    <!-- RESUMEN GENERAL -->
+    <section class="summary" aria-labelledby="titulo-resumen">
+      <h2 id="titulo-resumen" class="summary__title">Resumen general</h2>
+
+      <div class="summary__grid">
+        <article class="cx-card summary__card cx-animate-in" style="--i: 4">
+          <h3>Obras por estado</h3>
+          @if (r.obrasPorEstado.length > 0) {
+            <ul class="bars">
+              @for (e of r.obrasPorEstado; track e.estado) {
+                <li>
+                  <span class="bars__label">
+                    <span [class]="claseEstadoObra(e.estado)">{{ e.estado }}</span>
+                    <strong>{{ e.cantidad }}</strong>
+                  </span>
+                  <span class="cx-progress" aria-hidden="true">
+                    <span class="cx-progress__fill" [style.width.%]="porcentaje(e.cantidad, r.obrasTotal)"></span>
+                  </span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="summary__empty">Sin obras para agrupar.</p>
+          }
+        </article>
+
+        @if (r.cotizaciones; as c) {
+          <article class="cx-card summary__card cx-animate-in" style="--i: 5">
+            <h3>Cotizaciones</h3>
+            <dl class="figures">
+              <div>
+                <dt>En borrador</dt>
+                <dd [cxContador]="c.borrador"></dd>
+              </div>
+              <div>
+                <dt>Aprobadas</dt>
+                <dd class="figures--ok" [cxContador]="c.aprobadas"></dd>
+              </div>
+              <div>
+                <dt>Rechazadas</dt>
+                <dd class="figures--bad" [cxContador]="c.rechazadas"></dd>
+              </div>
+            </dl>
+            <p class="summary__foot">Valor en borrador: <strong>{{ formatearPesos(c.valorEnBorrador) }}</strong></p>
+          </article>
+        }
+
+        @if (r.materiales; as m) {
+          <article class="cx-card summary__card cx-animate-in" style="--i: 6">
+            <h3>Inventario de materiales</h3>
+            <dl class="figures">
+              <div>
+                <dt>Pedidos</dt>
+                <dd [cxContador]="m.pedidos"></dd>
+              </div>
+              <div>
+                <dt>En bodega</dt>
+                <dd [cxContador]="m.enBodega"></dd>
+              </div>
+              <div>
+                <dt>Retirados</dt>
+                <dd [cxContador]="m.retirados"></dd>
+              </div>
+            </dl>
+            <p class="summary__foot">
+              <strong>{{ m.retirosUltimos7Dias }}</strong> retiro(s) en los últimos 7 días
+            </p>
+          </article>
+        }
+      </div>
+    </section>
+
+    <!-- COTIZACIONES PENDIENTES -->
+    @if (r.cotizaciones; as c) {
+      <article class="card border-0 cx-animate-in" style="--i: 7">
+        <div class="card-header bg-white py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center">
+          <h2 class="h5 mb-0">
+            {{ esAdministrador() ? 'Cotizaciones por aprobar' : 'Mis cotizaciones en borrador' }}
+          </h2>
+          <span class="small text-secondary">
+            {{ c.aprobadas }} aprobada(s) · {{ c.rechazadas }} rechazada(s)
+          </span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <caption class="visually-hidden">Cotizaciones en borrador</caption>
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-4">Número</th>
+                <th scope="col">Proyecto</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Fecha</th>
+                <th scope="col" class="text-end pe-4">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of c.pendientes; track p.id) {
+                <tr>
+                  <td class="ps-4 fw-semibold text-nowrap">
+                    <a routerLink="/app/cotizaciones">{{ p.numero }}</a>
+                  </td>
+                  <td>{{ p.nombreProyecto }}</td>
+                  <td>{{ p.clienteNombre || '—' }}</td>
+                  <td class="text-nowrap">{{ formatearFechaCorta(p.fecha) }}</td>
+                  <td class="text-end pe-4 fw-semibold text-nowrap">{{ formatearPesos(p.total) }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center text-secondary py-4">
+                    No hay cotizaciones en borrador.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    }
   }
 </section>

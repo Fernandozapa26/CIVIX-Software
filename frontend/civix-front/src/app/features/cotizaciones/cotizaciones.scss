@@ -1,65 +1,18 @@
-.filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.filtro {
-  border: 1px solid var(--civix-border);
-  background: #fff;
-  color: var(--civix-texto-suave);
-  border-radius: 999px;
-  padding: 6px 16px;
-  font-weight: 600;
-  font-size: 0.9rem;
-
-  &:hover {
-    color: var(--civix-primary);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--civix-primary);
-    outline-offset: 2px;
-  }
-
-  &.activo {
-    background: var(--civix-primary);
-    border-color: var(--civix-primary);
-    color: #fff;
-  }
-}
-
 .panel-aprobar {
-  border-top: 3px solid var(--civix-accent) !important;
+  border-top: 3px solid var(--cx-amarillo) !important;
+  animation: cx-fade-up 260ms ease both;
 }
 
-/* Etiquetas de estado con contraste AA */
-.estado {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
+// Las etiquetas de estado (.cx-chip), los filtros (.cx-segment) y el buscador
+// (.cx-search) usan los estilos compartidos de styles.scss.
+.cotizaciones .cx-search {
+  min-width: 300px;
 }
 
-.estado-borrador {
-  background: #eceff1;
-  color: #37474f;
-}
-
-.estado-aprobada {
-  background: #e3f3e8;
-  color: #23633d;
-}
-
-.estado-rechazada {
-  background: #fdecea;
-  color: #a12a1f;
-}
-
-.estado-anulada {
-  background: #f1f1f1;
-  color: #5b5b5b;
-  text-decoration: line-through;
+@media (max-width: 768px) {
+  .cotizaciones .cx-search,
+  .cotizaciones .cx-segmented {
+    width: 100%;
+    min-width: 0;
+  }
 }

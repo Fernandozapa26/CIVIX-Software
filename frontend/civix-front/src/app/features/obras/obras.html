@@ -1,178 +1,475 @@
-<section class="dashboard">
-  <div class="dashboard__intro">
+<section class="obras">
+  <header class="cx-page-header">
     <div>
-      <p class="dashboard__eyebrow">PORTAFOLIO DE PROYECTOS</p>
-      <h1 class="dashboard__title">Obras</h1>
-      <p class="dashboard__desc">Consulta y administra {{ obras().length }} proyectos registrados.</p>
+      <p class="cx-eyebrow">Portafolio de proyectos</p>
+      <h1 class="cx-title">Obras</h1>
+      <p class="cx-subtitle">
+        Consulta y administra {{ obras().length }} {{ obras().length === 1 ? 'proyecto registrado' : 'proyectos registrados' }}.
+      </p>
     </div>
-    <div class="dashboard__search">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+
+    @if (puedeGestionar()) {
+      <div class="cx-page-actions">
+        <button type="button" class="cx-btn cx-btn--primary" (click)="nuevaObra()">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i>Nueva obra
+        </button>
+      </div>
+    }
+  </header>
+
+  <!-- BÚSQUEDA Y FILTROS -->
+  <div class="cx-toolbar">
+    <div class="cx-segmented" role="group" aria-label="Filtrar por estado">
+      @for (tab of filtros; track tab) {
+        <button
+          type="button"
+          class="cx-segment"
+          [class.is-active]="filtro() === tab"
+          [attr.aria-pressed]="filtro() === tab"
+          (click)="filtro.set(tab)"
+        >
+          {{ tab }}
+          <span class="obras__count">{{ conteoPorFiltro()[tab] }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="cx-search obras__search">
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <label for="buscar-obra" class="visually-hidden">Buscar obra</label>
       <input
-        type="text"
-        placeholder="Buscar obra, cliente o ciudad..."
+        id="buscar-obra"
+        type="search"
+        placeholder="Buscar obra, cliente o ciudad…"
         [value]="busqueda()"
         (input)="busqueda.set($any($event.target).value)"
       />
     </div>
-    @if (puedeGestionar()) {
-      <button type="button" class="dashboard__new-btn" (click)="nuevaObra()">+ Nueva obra</button>
-    }
-  </div>
-
-  <div class="dashboard__filters">
-    @for (tab of ['Todas','En ejecución','En planeación','Finalizada']; track tab) {
-      <button
-        type="button"
-        class="filter-tab"
-        [class.filter-tab--active]="filtro() === tab"
-        (click)="filtro.set(tab)"
-      >{{ tab }}</button>
-    }
   </div>
 
   @if (error()) {
-    <p class="dashboard__error" role="alert">{{ error() }}</p>
+    <div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+      <span>{{ error() }}</span>
+      <button type="button" class="btn-close" aria-label="Cerrar mensaje" (click)="error.set(null)"></button>
+    </div>
   }
 
   @if (cargando()) {
-    <p>Cargando obras...</p>
+    <div class="cx-loading" role="status">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+      Cargando obras…
+    </div>
   } @else {
-    <div class="dashboard__grid">
-      @for (obra of obrasFiltradas(); track obra.id) {
-        <article class="project-card">
-          <div class="project-card__top">
-            <span class="project-card__badge">{{ (obra.id < 10 ? '0' : '') + obra.id }}</span>
-            <span class="project-card__status" [class]="'status--' + slug(obra.estado)">{{ estadoLabel(obra.estado) }}</span>
+    <div class="obras__grid">
+      @for (obra of obrasFiltradas(); track obra.id; let i = $index) {
+        <article class="project-card cx-card cx-card--interactive cx-animate-in" [style.--i]="i">
+          <!-- Portada: foto del avance más reciente o, si no hay fotos, un encabezado gráfico -->
+          <div class="project-card__cover" [class.project-card__cover--photo]="!!obra.imagenPortada">
+            @if (obra.imagenPortada) {
+              <img [src]="urlImagen(obra.imagenPortada)" [alt]="'Foto reciente de ' + obra.nombre" loading="lazy" />
+            } @else {
+              <i class="bi bi-buildings" aria-hidden="true"></i>
+            }
+            <span class="project-card__code">OB-{{ (obra.id < 10 ? '0' : '') + obra.id }}</span>
           </div>
-          <h3 class="project-card__title">{{ obra.nombre }}</h3>
-          <p class="project-card__location">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            {{ obra.ubicacion }}
-          </p>
-          <dl class="project-card__people">
+
+          <div class="project-card__body">
+            <div class="project-card__head">
+              <h2 class="project-card__title">{{ obra.nombre }}</h2>
+              <span [class]="claseEstadoObra(obra.estado)">{{ obra.estado }}</span>
+            </div>
+
+            <p class="project-card__location">
+              <i class="bi bi-geo-alt" aria-hidden="true"></i>
+              {{ obra.ubicacion || 'Sin ubicación registrada' }}
+            </p>
+
+            <dl class="project-card__people">
+              <div>
+                <dt>Cliente</dt>
+                <dd>{{ obra.clienteNombre || 'Sin asignar' }}</dd>
+              </div>
+              <div>
+                <dt>Responsable</dt>
+                <dd>{{ obra.responsableNombre || 'Sin asignar' }}</dd>
+              </div>
+            </dl>
+
+            <div class="project-card__progress">
+              <div class="project-card__progress-labels">
+                <span>Avance físico</span>
+                <strong>{{ obra.avance }}%</strong>
+              </div>
+              <div
+                class="cx-progress"
+                role="progressbar"
+                [attr.aria-label]="'Avance físico de ' + obra.nombre"
+                [attr.aria-valuenow]="obra.avance"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <div
+                  class="cx-progress__fill"
+                  [class.cx-progress__fill--done]="obra.avance >= 100"
+                  [style.width.%]="obra.avance"
+                ></div>
+              </div>
+            </div>
+
+            <dl class="project-card__figures">
+              <div>
+                <dt>Presupuesto</dt>
+                <dd>{{ obra.presupuesto | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</dd>
+              </div>
+              <div>
+                <dt>Personal</dt>
+                <dd>{{ obra.personal }} {{ obra.personal === 1 ? 'persona' : 'personas' }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <footer class="project-card__actions">
+            <button type="button" class="cx-btn cx-btn--ghost cx-btn--sm" (click)="verDetalle(obra)">
+              <i class="bi bi-eye" aria-hidden="true"></i>Detalles
+            </button>
+
+            @if (puedeGestionar()) {
+              <span class="project-card__spacer"></span>
+              <button
+                type="button"
+                class="cx-btn cx-btn--secondary cx-btn--sm"
+                (click)="editar(obra)"
+                [attr.aria-label]="'Editar ' + obra.nombre"
+              >
+                <i class="bi bi-pencil" aria-hidden="true"></i>Editar
+              </button>
+              <button
+                type="button"
+                class="cx-btn cx-btn--danger cx-btn--sm cx-btn--icon"
+                (click)="eliminar(obra)"
+                [attr.aria-label]="'Eliminar ' + obra.nombre"
+                title="Eliminar"
+              >
+                <i class="bi bi-trash" aria-hidden="true"></i>
+              </button>
+            }
+          </footer>
+        </article>
+      } @empty {
+        <div class="cx-empty obras__empty">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <p>No hay obras que coincidan con los filtros.</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- FORMULARIO (crear / editar) -->
+  @if (mostrarFormulario() && puedeGestionar()) {
+    <div class="cx-modal-backdrop" (click)="cancelar()">
+      <form
+        class="cx-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-form-obra"
+        [formGroup]="form"
+        (ngSubmit)="guardar()"
+        (click)="$event.stopPropagation()"
+        novalidate
+      >
+        <header class="cx-modal__header">
+          <div>
+            <h2 id="titulo-form-obra">{{ editandoId() === null ? 'Nueva obra' : 'Editar obra' }}</h2>
+            <p>Los campos marcados con * son obligatorios.</p>
+          </div>
+          <button type="button" class="btn-close" aria-label="Cerrar" (click)="cancelar()"></button>
+        </header>
+
+        <div class="cx-modal__body">
+          <fieldset class="cx-modal__section">
+            <legend class="cx-modal__section-title">Información general</legend>
+            <div class="cx-form-grid">
+              <div class="cx-col-full">
+                <label for="obra-nombre" class="form-label">Nombre *</label>
+                <input
+                  id="obra-nombre"
+                  type="text"
+                  class="form-control"
+                  formControlName="nombre"
+                  maxlength="150"
+                  [class.is-invalid]="invalido(form.controls.nombre)"
+                />
+                <div class="invalid-feedback">Escribe el nombre de la obra (máximo 150 caracteres).</div>
+              </div>
+
+              <div class="cx-col-full">
+                <label for="obra-ubicacion" class="form-label">Ubicación *</label>
+                <input
+                  id="obra-ubicacion"
+                  type="text"
+                  class="form-control"
+                  formControlName="ubicacion"
+                  [class.is-invalid]="invalido(form.controls.ubicacion)"
+                />
+                <div class="invalid-feedback">Indica la ubicación de la obra.</div>
+              </div>
+
+              <div class="cx-col-full">
+                <label for="obra-descripcion" class="form-label">Descripción</label>
+                <textarea
+                  id="obra-descripcion"
+                  class="form-control"
+                  rows="3"
+                  formControlName="descripcion"
+                ></textarea>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cx-modal__section">
+            <legend class="cx-modal__section-title">Responsables</legend>
+            <div class="cx-form-grid">
+              <div>
+                <label for="obra-cliente" class="form-label">Cliente *</label>
+                <select
+                  id="obra-cliente"
+                  class="form-select"
+                  formControlName="clienteId"
+                  [class.is-invalid]="invalido(form.controls.clienteId)"
+                >
+                  <option [ngValue]="0" disabled>Selecciona el cliente</option>
+                  @for (cliente of clientes(); track cliente.id) {
+                    <option [ngValue]="cliente.id">{{ cliente.nombre }} ({{ cliente.correo }})</option>
+                  }
+                </select>
+                <div class="invalid-feedback">Selecciona el cliente.</div>
+              </div>
+
+              <div>
+                <label for="obra-responsable" class="form-label">Ingeniero responsable *</label>
+                <select
+                  id="obra-responsable"
+                  class="form-select"
+                  formControlName="responsableId"
+                  [class.is-invalid]="invalido(form.controls.responsableId)"
+                >
+                  <option [ngValue]="0" disabled>Selecciona el ingeniero</option>
+                  @for (ingeniero of ingenieros(); track ingeniero.id) {
+                    <option [ngValue]="ingeniero.id">{{ ingeniero.nombre }} ({{ ingeniero.correo }})</option>
+                  }
+                </select>
+                <div class="invalid-feedback">Selecciona el ingeniero responsable.</div>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cx-modal__section">
+            <legend class="cx-modal__section-title">Planificación</legend>
+            <div class="cx-form-grid">
+              <div>
+                <label for="obra-inicio" class="form-label">Fecha de inicio *</label>
+                <input
+                  id="obra-inicio"
+                  type="date"
+                  class="form-control"
+                  formControlName="fechaInicio"
+                  [class.is-invalid]="invalido(form.controls.fechaInicio)"
+                />
+                <div class="invalid-feedback">Indica la fecha de inicio.</div>
+              </div>
+
+              <div>
+                <label for="obra-fin" class="form-label">Fecha de fin estimada</label>
+                <input id="obra-fin" type="date" class="form-control" formControlName="fechaFinEstimada" />
+              </div>
+
+              <div>
+                <label for="obra-estado" class="form-label">Estado *</label>
+                <select id="obra-estado" class="form-select" formControlName="estado">
+                  <option value="Planificada">Planificada</option>
+                  <option value="En planeación">En planeación</option>
+                  <option value="En ejecución">En ejecución</option>
+                  <option value="Pausada">Pausada</option>
+                  <option value="Finalizada">Finalizada</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="cx-modal__section">
+            <legend class="cx-modal__section-title">Presupuesto y seguimiento</legend>
+            <div class="cx-form-grid obras__grid-3">
+              <div>
+                <label for="obra-presupuesto" class="form-label">Presupuesto (COP) *</label>
+                <input
+                  id="obra-presupuesto"
+                  type="number"
+                  class="form-control"
+                  formControlName="presupuesto"
+                  min="0"
+                  [class.is-invalid]="invalido(form.controls.presupuesto)"
+                />
+                <div class="invalid-feedback">El presupuesto no puede ser negativo.</div>
+              </div>
+
+              <div>
+                <label for="obra-avance" class="form-label">Avance (%) *</label>
+                <input
+                  id="obra-avance"
+                  type="number"
+                  class="form-control"
+                  formControlName="avance"
+                  min="0"
+                  max="100"
+                  [class.is-invalid]="invalido(form.controls.avance)"
+                />
+                <div class="invalid-feedback">Debe estar entre 0 y 100.</div>
+              </div>
+
+              <div>
+                <label for="obra-personal" class="form-label">Personal *</label>
+                <input
+                  id="obra-personal"
+                  type="number"
+                  class="form-control"
+                  formControlName="personal"
+                  min="0"
+                  [class.is-invalid]="invalido(form.controls.personal)"
+                />
+                <div class="invalid-feedback">No puede ser negativo.</div>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <footer class="cx-modal__footer">
+          <button type="button" class="cx-btn cx-btn--secondary" (click)="cancelar()">Cancelar</button>
+          <button type="submit" class="cx-btn cx-btn--primary" [disabled]="guardando()">
+            @if (guardando()) {
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            } @else {
+              <i class="bi bi-check-lg" aria-hidden="true"></i>
+            }
+            Guardar
+          </button>
+        </footer>
+      </form>
+    </div>
+  }
+
+  <!-- DETALLE -->
+  @if (obraDetalle(); as obra) {
+    <div class="cx-modal-backdrop" (click)="obraDetalle.set(null)">
+      <div
+        class="cx-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-detalle-obra"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="cx-modal__header">
+          <div>
+            <p class="cx-eyebrow mb-1">OB-{{ (obra.id < 10 ? '0' : '') + obra.id }}</p>
+            <h2 id="titulo-detalle-obra">{{ obra.nombre }}</h2>
+            <p><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ obra.ubicacion || 'Sin ubicación registrada' }}</p>
+          </div>
+          <button type="button" class="btn-close" aria-label="Cerrar" (click)="obraDetalle.set(null)"></button>
+        </header>
+
+        <div class="cx-modal__body">
+          @if (obra.imagenPortada) {
+            <a class="cx-photo detail__photo" [href]="urlImagen(obra.imagenPortada)" target="_blank" rel="noopener">
+              <img [src]="urlImagen(obra.imagenPortada)" [alt]="'Foto reciente de ' + obra.nombre" />
+            </a>
+          }
+
+          <div class="detail__status">
+            <span [class]="claseEstadoObra(obra.estado)">{{ obra.estado }}</span>
+            <div class="detail__progress">
+              <div class="cx-progress" aria-hidden="true">
+                <div class="cx-progress__fill" [style.width.%]="obra.avance"></div>
+              </div>
+              <strong>{{ obra.avance }}% de avance</strong>
+            </div>
+          </div>
+
+          @if (obra.descripcion) {
+            <p class="detail__desc">{{ obra.descripcion }}</p>
+          }
+
+          <dl class="detail__grid">
             <div>
               <dt>Cliente</dt>
-              <dd>{{ obra.clienteNombre || 'Sin asignar' }}</dd>
+              <dd>{{ obra.clienteNombre || obra.cliente || 'Sin asignar' }}</dd>
             </div>
             <div>
               <dt>Responsable</dt>
               <dd>{{ obra.responsableNombre || 'Sin asignar' }}</dd>
             </div>
+            <div>
+              <dt>Fecha de inicio</dt>
+              <dd>{{ obra.fechaInicio ? obra.fechaInicio.slice(0, 10) : '—' }}</dd>
+            </div>
+            <div>
+              <dt>Fin estimado</dt>
+              <dd>{{ obra.fechaFinEstimada ? obra.fechaFinEstimada.slice(0, 10) : '—' }}</dd>
+            </div>
+            <div>
+              <dt>Presupuesto</dt>
+              <dd>{{ obra.presupuesto | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</dd>
+            </div>
+            <div>
+              <dt>Personal asignado</dt>
+              <dd>{{ obra.personal }} {{ obra.personal === 1 ? 'persona' : 'personas' }}</dd>
+            </div>
           </dl>
+        </div>
 
-          <div class="project-card__progress">
-            <div class="project-card__progress-labels">
-              <span>AVANCE FÍSICO</span>
-              <span class="project-card__progress-value">{{ obra.avance }}%</span>
-            </div>
-            <div class="project-card__progress-bar">
-              <div class="project-card__progress-fill" [style.width.%]="obra.avance"></div>
-            </div>
-          </div>
-
-          <div class="project-card__footer">
-            <div>
-              <span class="project-card__meta-label">PRESUPUESTO</span>
-              <span class="project-card__meta-value">{{ obra.presupuesto | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
-            </div>
-            <div>
-              <span class="project-card__meta-label">PERSONAL</span>
-              <span class="project-card__meta-value">{{ obra.personal }} personas</span>
-            </div>
-          </div>
-
+        <footer class="cx-modal__footer">
+          <button type="button" class="cx-btn cx-btn--secondary" (click)="obraDetalle.set(null)">Cerrar</button>
           @if (puedeGestionar()) {
-            <div class="project-card__actions">
-              <button type="button" (click)="editar(obra)">Editar</button>
-              <button type="button" (click)="eliminar(obra)">Eliminar</button>
-            </div>
+            <button type="button" class="cx-btn cx-btn--primary" (click)="editarDesdeDetalle(obra)">
+              <i class="bi bi-pencil" aria-hidden="true"></i>Editar obra
+            </button>
           }
-        </article>
-      } @empty {
-        <p class="dashboard__empty">No hay obras que coincidan con los filtros.</p>
-      }
+        </footer>
+      </div>
     </div>
   }
 
-  @if (mostrarFormulario() && puedeGestionar()) {
-    <form class="obras__form" [formGroup]="form" (ngSubmit)="guardar()">
-      <h3>{{ editandoId() === null ? 'Nueva obra' : 'Editar obra' }}</h3>
-
-      <label>
-        Nombre
-        <input type="text" formControlName="nombre" />
-      </label>
-
-      <label>
-        Cliente
-        <select formControlName="clienteId">
-          <option [ngValue]="0" disabled>Selecciona el cliente</option>
-          @for (cliente of clientes(); track cliente.id) {
-            <option [ngValue]="cliente.id">{{ cliente.nombre }} ({{ cliente.correo }})</option>
-          }
-        </select>
-      </label>
-
-      <label>
-        Ingeniero responsable
-        <select formControlName="responsableId">
-          <option [ngValue]="0" disabled>Selecciona el ingeniero</option>
-          @for (ingeniero of ingenieros(); track ingeniero.id) {
-            <option [ngValue]="ingeniero.id">{{ ingeniero.nombre }} ({{ ingeniero.correo }})</option>
-          }
-        </select>
-      </label>
-
-      <label>
-        Descripción
-        <textarea formControlName="descripcion"></textarea>
-      </label>
-
-      <label>
-        Ubicación
-        <input type="text" formControlName="ubicacion" />
-      </label>
-
-      <label>
-        Fecha de inicio
-        <input type="date" formControlName="fechaInicio" />
-      </label>
-
-      <label>
-        Fecha de fin estimada
-        <input type="date" formControlName="fechaFinEstimada" />
-      </label>
-
-      <label>
-        Estado
-        <select formControlName="estado">
-          <option value="Planificada">Planificada</option>
-          <option value="En planeación">En planeación</option>
-          <option value="En ejecución">En ejecución</option>
-          <option value="Pausada">Pausada</option>
-          <option value="Finalizada">Finalizada</option>
-        </select>
-      </label>
-
-      <label>
-        Presupuesto
-        <input type="number" formControlName="presupuesto" min="0" />
-      </label>
-
-      <label>
-        Avance (%)
-        <input type="number" formControlName="avance" min="0" max="100" />
-      </label>
-
-      <label>
-        Personal
-        <input type="number" formControlName="personal" min="0" />
-      </label>
-
-      <div class="obras__form-actions">
-        <button type="submit">Guardar</button>
-        <button type="button" (click)="cancelar()">Cancelar</button>
+  <!-- CONFIRMAR ELIMINACIÓN -->
+  @if (obraAEliminar(); as obra) {
+    <div class="cx-modal-backdrop" (click)="obraAEliminar.set(null)">
+      <div
+        class="cx-modal cx-modal--sm"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="titulo-eliminar-obra"
+        aria-describedby="texto-eliminar-obra"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="cx-modal__body cx-confirm">
+          <span class="cx-confirm__icon" aria-hidden="true"><i class="bi bi-exclamation-triangle"></i></span>
+          <h2 id="titulo-eliminar-obra">¿Eliminar esta obra?</h2>
+          <p id="texto-eliminar-obra">
+            Se eliminará <strong>{{ obra.nombre }}</strong>. Esta acción no se puede deshacer.
+          </p>
+        </div>
+        <footer class="cx-modal__footer">
+          <button type="button" class="cx-btn cx-btn--secondary" (click)="obraAEliminar.set(null)">Cancelar</button>
+          <button
+            type="button"
+            class="cx-btn cx-btn--danger-solid"
+            [disabled]="eliminando()"
+            (click)="confirmarEliminacion()"
+          >
+            @if (eliminando()) {
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            }
+            Eliminar
+          </button>
+        </footer>
       </div>
-    </form>
+    </div>
   }
 </section>

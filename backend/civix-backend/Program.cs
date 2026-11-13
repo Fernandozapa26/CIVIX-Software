@@ -53,6 +53,7 @@ builder.Services.AddSingleton(jwtOptions);
 builder.Services.AddSingleton<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AccesoObrasService>();
+builder.Services.AddScoped<UsuariosService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
