@@ -150,6 +150,78 @@
   }
 }
 
+.etiqueta-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.7rem;
+
+  label {
+    margin-bottom: 0 !important;
+  }
+}
+
+.enlace-secundario {
+  color: var(--civix-tinta);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--civix-naranja-texto);
+  }
+}
+
+/* Panel de resultado (correo enviado, contraseña cambiada, enlace inválido) */
+.resultado {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--civix-borde);
+  border-left: 3px solid var(--civix-naranja);
+  background: #fff;
+  animation: cx-fade-up 260ms ease both;
+
+  &--ok {
+    border-left-color: var(--cx-verde, #278653);
+  }
+
+  &--error {
+    border-left-color: var(--civix-error);
+  }
+
+  &__icono {
+    flex-shrink: 0;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--civix-naranja-texto);
+  }
+
+  &--ok &__icono {
+    color: var(--cx-verde, #278653);
+  }
+
+  &--error &__icono {
+    color: var(--civix-error);
+  }
+
+  h2 {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--civix-tinta);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--civix-texto-suave);
+  }
+}
+
 .cambio {
   margin: 1.75rem 0 0;
   text-align: center;

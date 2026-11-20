@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,37 @@ builder.Services.AddSingleton<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AccesoObrasService>();
 builder.Services.AddScoped<UsuariosService>();
+
+// --- Recuperación de contraseña ("¿Olvidaste tu contraseña?") ---
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(SmtpOptions.Seccion).Get<SmtpOptions>() ?? new SmtpOptions());
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(RecuperacionPasswordOptions.Seccion).Get<RecuperacionPasswordOptions>()
+    ?? new RecuperacionPasswordOptions());
+builder.Services.AddSingleton<IEnviadorCorreo, SmtpEnviadorCorreo>();
+builder.Services.AddScoped<RecuperacionPasswordService>();
+
+// Límite de intentos por IP para los endpoints de recuperación (evita abuso y envío masivo de correos).
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy(civix_backend.Controllers.AuthController.PoliticaRecuperacion, contexto =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            contexto.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(15),
+                QueueLimit = 0
+            }));
+
+    options.OnRejected = async (contexto, cancelacion) =>
+    {
+        contexto.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await contexto.HttpContext.Response.WriteAsJsonAsync(
+            new { mensaje = "Demasiados intentos. Espera unos minutos e intenta de nuevo." },
+            cancelacion);
+    };
+});
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -116,6 +148,8 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 app.UseCors(PoliticaCorsFrontend);
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 

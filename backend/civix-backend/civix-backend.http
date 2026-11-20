@@ -74,3 +74,26 @@ POST {{civix_backend_HostAddress}}/api/usuarios/4/reactivar
 Authorization: Bearer {{login.response.body.$.token}}
 
 ###
+
+# --- Recuperación de contraseña ---
+# Sin SMTP configurado, en desarrollo el enlace aparece en la consola de la API.
+
+POST {{civix_backend_HostAddress}}/api/auth/olvide-password
+Content-Type: application/json
+
+{
+  "correo": "cliente@civix.co"
+}
+
+###
+
+# Copia aquí el token del enlace (lo que va después de ?token=)
+POST {{civix_backend_HostAddress}}/api/auth/restablecer-password
+Content-Type: application/json
+
+{
+  "token": "PEGA_AQUI_EL_TOKEN",
+  "password": "NuevaClave123"
+}
+
+###
