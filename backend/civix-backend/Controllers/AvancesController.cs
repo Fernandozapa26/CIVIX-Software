@@ -38,7 +38,7 @@ public class AvancesController : ControllerBase
         if (permitidas is not null)
             query = query.Where(a => permitidas.Contains(a.ObraId));
 
-        var avances = await query.OrderByDescending(a => a.Fecha).ToListAsync();
+        var avances = await query.OrderByDescending(a => a.Fecha).ThenByDescending(a => a.Id).ToListAsync();
         return Ok(avances);
     }
 
