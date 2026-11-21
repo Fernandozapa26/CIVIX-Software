@@ -64,6 +64,12 @@ namespace civix_backend.DTOs.Obras
         public string? ClienteNombre { get; set; }
         public int? ResponsableId { get; set; }
         public string? ResponsableNombre { get; set; }
+
+        /// <summary>
+        /// Foto representativa: la primera imagen del avance más reciente que tenga fotos.
+        /// Null si la obra todavía no tiene fotos registradas.
+        /// </summary>
+        public string? ImagenPortada { get; set; }
     }
 
     /// <summary>Usuario activo para los selectores de cliente y responsable.</summary>

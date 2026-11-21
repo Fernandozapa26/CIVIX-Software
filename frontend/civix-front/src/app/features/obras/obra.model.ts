@@ -17,6 +17,8 @@ export interface Obra {
   /** Ingeniero responsable asignado a la obra. */
   responsableId?: number | null;
   responsableNombre?: string | null;
+  /** Primera foto del avance más reciente con imágenes (null si aún no hay fotos). */
+  imagenPortada?: string | null;
 }
 
 /** Cuerpo de POST/PUT /api/obras. */

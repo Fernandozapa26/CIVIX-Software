@@ -1,64 +1,99 @@
-<div class="app-layout">
+<div class="app-layout" [class.is-collapsed]="contraido()">
 
-  <aside class="sidebar">
+  <!-- Fondo del menú en pantallas pequeñas -->
+  @if (menuMovilAbierto()) {
+    <button
+      type="button"
+      class="sidebar-backdrop"
+      aria-label="Cerrar menú"
+      (click)="cerrarPaneles()"
+    ></button>
+  }
+
+  <aside class="sidebar" [class.is-open]="menuMovilAbierto()" aria-label="Menú principal">
 
     <div class="sidebar-logo">
+      <span class="logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 18h20" />
+          <path d="M4 18v-2a8 8 0 0 1 16 0v2" />
+          <path d="M10 8.5V5h4v3.5" />
+        </svg>
+      </span>
 
-      <div class="logo-icon">
-        <i class="bi bi-buildings"></i>
-      </div>
+      <span class="logo-text">
+        <strong>CIVIX</strong>
+        <span>Control de obra</span>
+      </span>
 
-      <div class="logo-text">
-        <h2>CIVIX</h2>
-        <span>CONTROL DE OBRA</span>
-      </div>
-
+      <button
+        type="button"
+        class="sidebar-close"
+        aria-label="Cerrar menú"
+        (click)="cerrarPaneles()"
+      >
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
     </div>
 
     <!-- NAVEGACIÓN -->
-    <div class="sidebar-navigation">
+    <nav class="sidebar-navigation" aria-label="Módulos">
+      <p class="menu-title">Espacio de trabajo</p>
 
-      <p class="menu-title">
-        ESPACIO DE TRABAJO
-      </p>
-
-      <nav class="menu">
-
+      <ul class="menu">
         @for (item of menuItems(); track item.route) {
-
-        <a [routerLink]="item.route" routerLinkActive="active">
-          <i class="bi menu-icon" [class]="item.icon"></i>
-          <span>{{ item.label }}</span>
-        </a>
+          <li>
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              #enlace="routerLinkActive"
+              [attr.aria-current]="enlace.isActive ? 'page' : null"
+              [attr.title]="contraido() ? item.label : null"
+            >
+              <i class="bi menu-icon" [class]="item.icon" aria-hidden="true"></i>
+              <span class="menu-label">{{ item.label }}</span>
+            </a>
+          </li>
         }
-
-      </nav>
-
-    </div>
+      </ul>
+    </nav>
 
     <!-- PERFIL -->
     <div class="sidebar-footer">
-
       @if (usuario(); as usuarioActual) {
-
-      <div class="user-profile">
-        <div class="user-avatar">
-          {{ obtenerIniciales(usuarioActual.nombre) }}
+        <div class="user-profile" [attr.title]="contraido() ? usuarioActual.nombre : null">
+          <span class="user-avatar" aria-hidden="true">
+            {{ obtenerIniciales(usuarioActual.nombre) }}
+          </span>
+          <span class="user-info">
+            <strong>{{ usuarioActual.nombre }}</strong>
+            <span>{{ usuarioActual.rol }}</span>
+          </span>
         </div>
-        <div class="user-info">
-          <strong>{{ usuarioActual.nombre }}</strong>
-          <span>{{ usuarioActual.rol }}</span>
-        </div>
-
-      </div>
-
       }
 
-      <button class="logout-btn" type="button" (click)="cerrarSesion()">
+      <button
+        class="logout-btn"
+        type="button"
+        (click)="cerrarSesion()"
+        [attr.title]="contraido() ? 'Cerrar sesión' : null"
+      >
         <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
-        <span>Cerrar sesión</span>
+        <span class="menu-label">Cerrar sesión</span>
       </button>
 
+      <button
+        type="button"
+        class="collapse-btn"
+        (click)="alternarSidebar()"
+        [attr.aria-label]="contraido() ? 'Expandir menú lateral' : 'Contraer menú lateral'"
+        [attr.aria-pressed]="contraido()"
+      >
+        <i class="bi" [class]="contraido() ? 'bi-chevron-double-right' : 'bi-chevron-double-left'"
+          aria-hidden="true"></i>
+        <span class="menu-label">Contraer menú</span>
+      </button>
     </div>
   </aside>
 
@@ -67,33 +102,96 @@
 
     <header class="topbar">
 
-      <nav class="breadcrumb" aria-label="Ruta de navegación">
+      <button
+        type="button"
+        class="topbar-icon-btn menu-toggle"
+        aria-label="Abrir menú"
+        [attr.aria-expanded]="menuMovilAbierto()"
+        (click)="abrirMenuMovil()"
+      >
+        <i class="bi bi-list" aria-hidden="true"></i>
+      </button>
 
-        <span>CIVIX</span>
-
-        @if (tituloPagina() !== 'Inicio') {
-
-        <i class="bi bi-chevron-right"></i>
-
-        <span>{{ tituloPagina() }}</span>
-
-        }
-
+      <nav class="breadcrumbs" aria-label="Ruta de navegación">
+        <ol>
+          @for (miga of migas(); track miga.label; let ultima = $last) {
+            <li>
+              @if (miga.link && !ultima) {
+                <a [routerLink]="miga.link">{{ miga.label }}</a>
+              } @else {
+                <span [attr.aria-current]="ultima ? 'page' : null">{{ miga.label }}</span>
+              }
+            </li>
+          }
+        </ol>
       </nav>
 
       <div class="topbar-actions">
 
-        <button class="notification-btn" type="button" aria-label="Notificaciones" disabled
-          title="Notificaciones próximamente">
-          <i class="bi bi-bell"></i>
+        <!-- Buscador de módulos -->
+        <div class="topbar-search" role="search">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <label for="buscar-modulo" class="visually-hidden">Buscar módulo</label>
+          <input
+            id="buscar-modulo"
+            type="search"
+            placeholder="Ir a un módulo…"
+            autocomplete="off"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls="resultados-modulo"
+            [attr.aria-expanded]="busquedaAbierta()"
+            [value]="textoBusqueda()"
+            (input)="alEscribirBusqueda($any($event.target).value)"
+            (focus)="busquedaAbierta.set(true)"
+            (blur)="alSalirBusqueda()"
+            (keydown.enter)="irAlPrimerResultado()"
+          />
+
+          @if (busquedaAbierta()) {
+            <ul id="resultados-modulo" class="search-results" role="listbox" aria-label="Módulos">
+              @for (item of resultadosBusqueda(); track item.route) {
+                <li role="option" aria-selected="false">
+                  <button type="button" (mousedown)="irA(item.route)">
+                    <i class="bi" [class]="item.icon" aria-hidden="true"></i>
+                    <span>
+                      <strong>{{ item.label }}</strong>
+                      <small>{{ item.descripcion }}</small>
+                    </span>
+                  </button>
+                </li>
+              } @empty {
+                <li class="search-empty">Ningún módulo coincide.</li>
+              }
+            </ul>
+          }
+        </div>
+
+        <button
+          class="topbar-icon-btn"
+          type="button"
+          aria-label="Notificaciones (próximamente)"
+          title="Notificaciones próximamente"
+          disabled
+        >
+          <i class="bi bi-bell" aria-hidden="true"></i>
         </button>
 
+        @if (usuario(); as usuarioActual) {
+          <div class="topbar-user">
+            <span class="cx-avatar" aria-hidden="true">{{ obtenerIniciales(usuarioActual.nombre) }}</span>
+            <span class="topbar-user-text">
+              <strong>{{ usuarioActual.nombre }}</strong>
+              <span>{{ usuarioActual.rol }}</span>
+            </span>
+          </div>
+        }
       </div>
 
     </header>
 
     <!-- CONTENIDO DINÁMICO -->
-    <main class="page-content">
+    <main class="page-content" id="contenido">
       <router-outlet></router-outlet>
     </main>
 

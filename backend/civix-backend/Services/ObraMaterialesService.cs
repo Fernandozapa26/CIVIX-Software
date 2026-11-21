@@ -55,11 +55,13 @@ namespace civix_backend.Services
         {
             return await _context.Cotizaciones
                 .AsNoTracking()
+                .Where(c => c.Activo)
                 .OrderByDescending(c => c.Fecha)
                 .ThenByDescending(c => c.Id)
                 .Select(c => new CotizacionOpcionDto
                 {
                     Id = c.Id,
+                    Numero = c.Numero,
                     Fecha = c.Fecha,
                     Total = c.Total,
                     Estado = c.Estado
@@ -305,6 +307,7 @@ namespace civix_backend.Services
                     MaterialNombre = om.Material.Nombre,
                     UnidadMedida = om.Material.UnidadMedida,
                     CotizacionId = om.CotizacionId,
+                    CotizacionNumero = om.Cotizacion != null ? om.Cotizacion.Numero : null,
                     Cantidad = om.Cantidad,
                     CantidadRetirada = om.Retiros.Sum(r => (decimal?)r.Cantidad) ?? 0m,
                     CantidadDisponible = om.Cantidad - (om.Retiros.Sum(r => (decimal?)r.Cantidad) ?? 0m),

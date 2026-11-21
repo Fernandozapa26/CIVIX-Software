@@ -1,0 +1,18 @@
+.panel-aprobar {
+  border-top: 3px solid var(--cx-amarillo) !important;
+  animation: cx-fade-up 260ms ease both;
+}
+
+// Las etiquetas de estado (.cx-chip), los filtros (.cx-segment) y el buscador
+// (.cx-search) usan los estilos compartidos de styles.scss.
+.cotizaciones .cx-search {
+  min-width: 300px;
+}
+
+@media (max-width: 768px) {
+  .cotizaciones .cx-search,
+  .cotizaciones .cx-segmented {
+    width: 100%;
+    min-width: 0;
+  }
+}

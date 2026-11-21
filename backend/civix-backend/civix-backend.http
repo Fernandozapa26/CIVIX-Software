@@ -41,3 +41,36 @@ GET {{civix_backend_HostAddress}}/api/materiales
 Authorization: Bearer {{login.response.body.$.token}}
 
 ###
+
+# --- Administración de usuarios (requiere token de Administrador) ---
+
+GET {{civix_backend_HostAddress}}/api/usuarios
+Authorization: Bearer {{login.response.body.$.token}}
+
+###
+
+# Editar usuario (password null = conservar la actual)
+PUT {{civix_backend_HostAddress}}/api/usuarios/3
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Cliente Demo",
+  "correo": "cliente@civix.co",
+  "rolId": 3,
+  "activo": true,
+  "password": null
+}
+
+###
+
+# Desactivar (no se borra: tiene historial asociado)
+DELETE {{civix_backend_HostAddress}}/api/usuarios/4
+Authorization: Bearer {{login.response.body.$.token}}
+
+###
+
+POST {{civix_backend_HostAddress}}/api/usuarios/4/reactivar
+Authorization: Bearer {{login.response.body.$.token}}
+
+###

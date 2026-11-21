@@ -1,62 +1,67 @@
+/* Tarjetas de resumen del inventario de la obra */
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .resumen {
-  border-left: 4px solid var(--civix-primary) !important;
-
-  .card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 1.1rem 1.25rem;
 }
 
-.resumen-pedido {
-  border-left-color: #b45309 !important;
+.resumen-icono {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 0.55rem;
+  border-radius: 9px;
+  background: var(--cx-azul-suave);
+  color: var(--cx-pizarra);
+  font-size: 1.05rem;
 }
 
-.resumen-bodega {
-  border-left-color: #1d6fa5 !important;
+.resumen--pedido .resumen-icono {
+  background: var(--cx-amarillo-suave);
+  color: var(--cx-amarillo-texto);
 }
 
-.resumen-retirado {
-  border-left-color: #2f7d4f !important;
+.resumen--retirado .resumen-icono {
+  background: var(--cx-verde-suave);
+  color: var(--cx-verde);
 }
 
 .resumen-etiqueta {
-  color: var(--civix-texto-suave);
-  font-size: 0.85rem;
+  color: var(--cx-texto-tenue);
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
 .resumen-valor {
-  color: var(--civix-primary);
-  font-size: 1.6rem;
-  font-weight: 700;
+  color: var(--cx-petroleo);
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
 }
 
 .panel-formulario {
-  border-top: 3px solid var(--civix-accent) !important;
+  border-top: 3px solid var(--cx-amarillo) !important;
+  animation: cx-fade-up 260ms ease both;
 }
 
-/* Etiquetas de estado con contraste AA */
-.estado {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
+@media (max-width: 1100px) {
+  .resumen-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.estado-pedido {
-  background: #fdf0dc;
-  color: #8a4b00;
-}
-
-.estado-bodega {
-  background: #e3f0fa;
-  color: #135b8a;
-}
-
-.estado-retirado {
-  background: #e3f3e8;
-  color: #23633d;
+@media (max-width: 480px) {
+  .resumen-grid {
+    grid-template-columns: 1fr;
+  }
 }
