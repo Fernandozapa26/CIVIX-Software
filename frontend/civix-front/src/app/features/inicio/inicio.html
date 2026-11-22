@@ -209,7 +209,7 @@
 
               @if (item.imagen) {
                 <span class="cx-photo activity__photo">
-                  <img [src]="urlImagen(item.imagen)" [alt]="'Foto del avance de ' + item.titulo" loading="lazy" />
+                  <img [attr.src]="item.imagen | imagenProtegida | async" [alt]="'Foto del avance de ' + item.titulo" loading="lazy" />
                 </span>
               }
             </li>

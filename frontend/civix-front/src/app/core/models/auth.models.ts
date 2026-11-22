@@ -43,3 +43,11 @@ export interface UsuarioSesion {
   correo: string;
   roles: RolCivix[];
 }
+
+/** Cuenta de acceso rápido que se muestra en el login (solo en desarrollo). */
+export interface CuentaPrueba {
+  rol: string;
+  icono: 'escudo' | 'casco' | 'usuario';
+  correo: string;
+  password: string;
+}

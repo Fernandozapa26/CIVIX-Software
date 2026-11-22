@@ -54,6 +54,7 @@ builder.Services.AddSingleton<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AccesoObrasService>();
 builder.Services.AddScoped<UsuariosService>();
+builder.Services.AddScoped<ImagenesAvanceService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -112,8 +113,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+// No se usa UseStaticFiles(): las fotos de los avances son privadas y solo se entregan
+// por GET /api/avances/imagenes/{nombre}, que valida el token y el acceso a la obra.
+
 // El orden importa: CORS -> Autenticación (quién eres) -> Autorización (qué puedes hacer).
-app.UseStaticFiles();
 
 app.UseCors(PoliticaCorsFrontend);
 
