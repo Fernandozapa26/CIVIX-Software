@@ -2,8 +2,9 @@
   margin-left: 0.35rem;
   padding: 0 0.4rem;
   border-radius: 5px;
-  background: rgba(16, 42, 53, 0.07);
-  font-size: 0.75rem;
+  background: var(--cx-gris-suave);
+  font-family: var(--cx-fuente-mono);
+  font-size: 0.72rem;
 
   .is-active & {
     background: rgba(255, 255, 255, 0.16);
@@ -41,11 +42,12 @@
     justify-content: space-between;
     height: 76px;
     padding: 0.8rem 1.1rem;
-    background-color: var(--cx-pizarra);
+    background-color: var(--cx-sidebar-activo);
     background-image:
       linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 18px 18px;
+    background-position: -1px -1px;
     color: rgba(255, 255, 255, 0.85);
 
     i {
@@ -84,9 +86,10 @@
     padding: 0.15rem 0.5rem;
     border-radius: 5px;
     background: rgba(16, 42, 53, 0.55);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-family: var(--cx-fuente-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
   }
 
   &__body {
@@ -106,8 +109,9 @@
 
   &__title {
     margin: 0;
-    font-size: 1.05rem;
-    font-weight: 800;
+    font-family: var(--cx-fuente-titulos);
+    font-size: 1.08rem;
+    font-weight: 700;
     line-height: 1.3;
   }
 
@@ -156,23 +160,41 @@
     }
   }
 
-  &__progress-labels {
+  &__progress {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.4rem;
-    font-size: 0.75rem;
+    align-items: center;
+    gap: 0.85rem;
 
-    span {
-      color: var(--cx-texto-tenue);
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    > div {
+      display: flex;
+      flex-direction: column;
     }
+  }
 
-    strong {
-      color: var(--cx-petroleo);
-      font-size: 0.85rem;
-    }
+  &__progress-label {
+    color: var(--cx-texto-tenue);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__progress-note {
+    color: var(--cx-texto);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  // Obra pausada o suspendida: cinta de obra sobre la portada
+  &--detenida &__cover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    height: 7px;
+    background: repeating-linear-gradient(-45deg, var(--cx-amarillo) 0 8px, var(--cx-tinta-fija) 8px 16px);
   }
 
   &__actions {
@@ -181,7 +203,7 @@
     gap: 0.4rem;
     padding: 0.65rem 0.9rem;
     border-top: 1px solid var(--cx-borde);
-    background: #fafbfa;
+    background: var(--cx-superficie-2);
   }
 
   &__spacer {
@@ -204,12 +226,8 @@
     align-items: center;
     gap: 0.75rem;
 
-    .cx-progress {
-      flex: 1;
-    }
-
     strong {
-      color: var(--cx-petroleo);
+      color: var(--cx-texto-tenue);
       font-size: 0.85rem;
       white-space: nowrap;
     }

@@ -11,6 +11,8 @@ namespace civix_backend.DTOs.Inicio
         public List<ConteoEstadoDto> ObrasPorEstado { get; set; } = new();
         public List<ObraInicioDto> Obras { get; set; } = new();
         public List<AvanceInicioDto> AvancesRecientes { get; set; } = new();
+        /// <summary>Avances registrados en cada una de las últimas semanas (de la más antigua a la actual).</summary>
+        public List<ConteoSemanaDto> AvancesPorSemana { get; set; } = new();
         public CotizacionesInicioDto? Cotizaciones { get; set; }
         public MaterialesInicioDto? Materiales { get; set; }
     }
@@ -18,6 +20,13 @@ namespace civix_backend.DTOs.Inicio
     public class ConteoEstadoDto
     {
         public string Estado { get; set; } = string.Empty;
+        public int Cantidad { get; set; }
+    }
+
+    public class ConteoSemanaDto
+    {
+        /// <summary>Lunes con el que empieza la semana.</summary>
+        public DateTime Semana { get; set; }
         public int Cantidad { get; set; }
     }
 

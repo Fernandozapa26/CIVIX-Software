@@ -5,7 +5,8 @@ import { AsyncPipe, CurrencyPipe } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AuthService } from '../../core/services/auth.service';
-import { claseEstadoObra } from '../../core/utils/estados';
+import { claseEstadoObra, obraDetenida } from '../../core/utils/estados';
+import { AnilloProgreso } from '../../shared/graficas/anillo-progreso';
 import { ImagenProtegidaPipe } from '../../core/pipes/imagen-protegida.pipe';
 import { obtenerMensajeError } from '../../core/utils/http-error';
 import { ObrasService } from './obras.service';
@@ -14,7 +15,7 @@ import { Obra, ObraPayload, UsuarioOpcion } from './obra.model';
 
 @Component({
   selector: 'app-obras',
-  imports: [ReactiveFormsModule, CurrencyPipe, AsyncPipe, ImagenProtegidaPipe],
+  imports: [ReactiveFormsModule, CurrencyPipe, AsyncPipe, ImagenProtegidaPipe, AnilloProgreso],
   templateUrl: './obras.html',
   styleUrl: './obras.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +54,7 @@ export class Obras implements OnInit {
   protected readonly guardando = signal(false);
 
   protected readonly claseEstadoObra = claseEstadoObra;
+  protected readonly obraDetenida = obraDetenida;
 
   /** Cantidad de obras por pestaña de filtro (para mostrarla junto al nombre). */
   protected readonly conteoPorFiltro = computed(() => {

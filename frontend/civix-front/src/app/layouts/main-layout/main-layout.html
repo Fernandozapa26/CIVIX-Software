@@ -1,4 +1,9 @@
-<div class="app-layout" [class.is-collapsed]="contraido()">
+<div
+  class="app-layout"
+  [class.is-collapsed]="contraido()"
+  [attr.data-tema]="tema()"
+  [attr.data-bs-theme]="tema() === 'oscuro' ? 'dark' : null"
+>
 
   <!-- Fondo del menú en pantallas pequeñas -->
   @if (menuMovilAbierto()) {
@@ -166,6 +171,17 @@
             </ul>
           }
         </div>
+
+        <button
+          class="topbar-icon-btn topbar-tema"
+          type="button"
+          [attr.aria-label]="tema() === 'oscuro' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
+          [attr.title]="tema() === 'oscuro' ? 'Tema claro' : 'Tema oscuro'"
+          [attr.aria-pressed]="tema() === 'oscuro'"
+          (click)="alternarTema()"
+        >
+          <i class="bi" [class]="tema() === 'oscuro' ? 'bi-sun' : 'bi-moon-stars'" aria-hidden="true"></i>
+        </button>
 
         <button
           class="topbar-icon-btn"

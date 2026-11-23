@@ -5,6 +5,8 @@ export interface ResumenInicio {
   obrasPorEstado: { estado: string; cantidad: number }[];
   obras: ObraInicio[];
   avancesRecientes: AvanceInicio[];
+  /** Avances registrados por semana (de la más antigua a la actual). Lunes de cada semana. */
+  avancesPorSemana?: { semana: string; cantidad: number }[];
   cotizaciones: CotizacionesInicio | null;
   materiales: MaterialesInicio | null;
 }

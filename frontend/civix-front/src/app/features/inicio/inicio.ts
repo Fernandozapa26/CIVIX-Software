@@ -11,6 +11,15 @@ import { AuthService } from '../../core/services/auth.service';
 import { claseEstadoObra } from '../../core/utils/estados';
 import { obtenerMensajeError } from '../../core/utils/http-error';
 import { formatearFechaCorta, formatearPesos } from '../cotizaciones/cotizaciones.service';
+import { AnilloProgreso } from '../../shared/graficas/anillo-progreso';
+import { BarraSegmentada } from '../../shared/graficas/barra-segmentada';
+import { GraficaColumnas } from '../../shared/graficas/grafica-columnas';
+import { GraficaDona } from '../../shared/graficas/grafica-dona';
+import {
+  COLORES_GRAFICA,
+  PuntoGrafica,
+  SegmentoGrafica,
+} from '../../shared/graficas/graficas.models';
 import { ResumenInicio } from './inicio.models';
 
 
@@ -34,7 +43,16 @@ interface Actividad {
  */
 @Component({
   selector: 'app-inicio',
-  imports: [RouterLink, AsyncPipe, ContadorDirective, ImagenProtegidaPipe],
+  imports: [
+    RouterLink,
+    AsyncPipe,
+    ContadorDirective,
+    ImagenProtegidaPipe,
+    AnilloProgreso,
+    BarraSegmentada,
+    GraficaColumnas,
+    GraficaDona,
+  ],
   templateUrl: './inicio.html',
   styleUrl: './inicio.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -144,6 +162,56 @@ export class Inicio {
       .slice(0, 8);
   });
 
+  /** Obras por estado, con un color por estado (dona e indicador). */
+  readonly segmentosObras = computed<SegmentoGrafica[]>(() =>
+    (this.resumen()?.obrasPorEstado ?? []).map((e) => ({
+      etiqueta: e.estado,
+      valor: e.cantidad,
+      color: colorEstadoObra(e.estado),
+    })),
+  );
+
+  readonly segmentosCotizaciones = computed<SegmentoGrafica[]>(() => {
+    const c = this.resumen()?.cotizaciones;
+    if (!c) {
+      return [];
+    }
+    return [
+      { etiqueta: 'En borrador', valor: c.borrador, color: COLORES_GRAFICA.amarillo },
+      { etiqueta: 'Aprobadas', valor: c.aprobadas, color: COLORES_GRAFICA.verde },
+      { etiqueta: 'Rechazadas', valor: c.rechazadas, color: COLORES_GRAFICA.rojo },
+    ];
+  });
+
+  readonly segmentosMateriales = computed<SegmentoGrafica[]>(() => {
+    const m = this.resumen()?.materiales;
+    if (!m) {
+      return [];
+    }
+    return [
+      { etiqueta: 'Pedidos', valor: m.pedidos, color: COLORES_GRAFICA.pizarra },
+      { etiqueta: 'En bodega', valor: m.enBodega, color: COLORES_GRAFICA.amarillo },
+      { etiqueta: 'Retirados', valor: m.retirados, color: COLORES_GRAFICA.gris },
+    ];
+  });
+
+  /** Avances registrados en cada una de las últimas semanas. */
+  readonly avancesPorSemana = computed<PuntoGrafica[]>(() =>
+    (this.resumen()?.avancesPorSemana ?? []).map((s) => {
+      const lunes = new Date(s.semana);
+      const mes = lunes.toLocaleDateString('es-CO', { month: 'short' }).replace('.', '').slice(0, 3);
+      return {
+        etiqueta: `${lunes.getDate()} ${mes}`,
+        valor: s.cantidad,
+        descripcion: `Semana del ${lunes.toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })}`,
+      };
+    }),
+  );
+
+  readonly totalAvancesSemanas = computed(() =>
+    this.avancesPorSemana().reduce((suma, p) => suma + p.valor, 0),
+  );
+
   readonly formatearPesos = formatearPesos;
   readonly formatearFechaCorta = formatearFechaCorta;
   readonly claseEstadoObra = claseEstadoObra;
@@ -168,9 +236,20 @@ export class Inicio {
     });
   }
 
+}
 
-  /** Porcentaje (0-100) de una parte respecto al total, para las barras del resumen. */
-  porcentaje(parte: number, total: number): number {
-    return total > 0 ? Math.round((parte / total) * 100) : 0;
+/** Color de cada estado de obra en las gráficas (coincide con las etiquetas .cx-chip). */
+function colorEstadoObra(estado: string): string {
+  const clase = claseEstadoObra(estado);
+
+  if (clase.includes('success')) {
+    return COLORES_GRAFICA.verde;
   }
+  if (clase.includes('danger')) {
+    return COLORES_GRAFICA.rojo;
+  }
+  if (clase.includes('muted')) {
+    return COLORES_GRAFICA.gris;
+  }
+  return COLORES_GRAFICA.pizarra;
 }

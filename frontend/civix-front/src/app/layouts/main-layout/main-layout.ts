@@ -36,11 +36,17 @@ interface Miga {
 /** Clave de localStorage donde se recuerda si el sidebar está contraído. */
 const CLAVE_SIDEBAR = 'civix.sidebar.contraido';
 
+/** Clave de localStorage donde se recuerda el tema elegido (claro u oscuro). */
+const CLAVE_TEMA = 'civix.tema';
+
+type Tema = 'claro' | 'oscuro';
+
 /**
  * Estructura de la aplicación con sesión iniciada:
  * - Sidebar con navegación filtrada por rol. En escritorio se puede contraer y
  *   en pantallas pequeñas se abre como panel deslizable.
- * - Encabezado con migas de pan, buscador de módulos, notificaciones y perfil.
+ * - Encabezado con migas de pan, buscador de módulos, tema claro/oscuro,
+ *   notificaciones y perfil.
  */
 @Component({
   selector: 'app-main-layout',
@@ -147,6 +153,9 @@ export class MainLayout {
 
   // Estado del sidebar
   readonly contraido = signal(leerPreferenciaSidebar());
+
+  // Tema de color: el guardado o, la primera vez, el del sistema operativo
+  readonly tema = signal<Tema>(leerPreferenciaTema());
   readonly menuMovilAbierto = signal(false);
 
   // Buscador de módulos del encabezado
@@ -211,6 +220,16 @@ export class MainLayout {
     }
   }
 
+  alternarTema(): void {
+    this.tema.update((actual) => (actual === 'oscuro' ? 'claro' : 'oscuro'));
+
+    try {
+      localStorage.setItem(CLAVE_TEMA, this.tema());
+    } catch {
+      // Sin acceso a localStorage la preferencia dura solo esta sesión.
+    }
+  }
+
   abrirMenuMovil(): void {
     this.menuMovilAbierto.set(true);
   }
@@ -255,6 +274,22 @@ function leerPreferenciaSidebar(): boolean {
   } catch {
     return false;
   }
+}
+
+function leerPreferenciaTema(): Tema {
+  try {
+    const guardado = localStorage.getItem(CLAVE_TEMA);
+
+    if (guardado === 'claro' || guardado === 'oscuro') {
+      return guardado;
+    }
+  } catch {
+    // Se usa la preferencia del sistema.
+  }
+
+  return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'oscuro'
+    : 'claro';
 }
 
 function normalizar(texto: string): string {

@@ -62,7 +62,11 @@
   } @else {
     <div class="obras__grid">
       @for (obra of obrasFiltradas(); track obra.id; let i = $index) {
-        <article class="project-card cx-card cx-card--interactive cx-animate-in" [style.--i]="i">
+        <article
+          class="project-card cx-card cx-card--interactive cx-animate-in"
+          [class.project-card--detenida]="obraDetenida(obra.estado)"
+          [style.--i]="i"
+        >
           <!-- Portada: foto del avance más reciente o, si no hay fotos, un encabezado gráfico -->
           <div class="project-card__cover" [class.project-card__cover--photo]="!!obra.imagenPortada">
             @if (obra.imagenPortada) {
@@ -96,30 +100,19 @@
             </dl>
 
             <div class="project-card__progress">
-              <div class="project-card__progress-labels">
-                <span>Avance físico</span>
-                <strong>{{ obra.avance }}%</strong>
-              </div>
-              <div
-                class="cx-progress"
-                role="progressbar"
-                [attr.aria-label]="'Avance físico de ' + obra.nombre"
-                [attr.aria-valuenow]="obra.avance"
-                aria-valuemin="0"
-                aria-valuemax="100"
-              >
-                <div
-                  class="cx-progress__fill"
-                  [class.cx-progress__fill--done]="obra.avance >= 100"
-                  [style.width.%]="obra.avance"
-                ></div>
+              <cx-anillo [valor]="obra.avance" [tamano]="54" [etiqueta]="'Avance físico de ' + obra.nombre" />
+              <div>
+                <span class="project-card__progress-label">Avance físico</span>
+                <span class="project-card__progress-note">
+                  {{ obra.avance >= 100 ? 'Obra completada' : (100 - obra.avance) + '% por ejecutar' }}
+                </span>
               </div>
             </div>
 
             <dl class="project-card__figures">
               <div>
                 <dt>Presupuesto</dt>
-                <dd>{{ obra.presupuesto | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</dd>
+                <dd class="cx-num">{{ obra.presupuesto | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</dd>
               </div>
               <div>
                 <dt>Personal</dt>
@@ -386,10 +379,8 @@
           <div class="detail__status">
             <span [class]="claseEstadoObra(obra.estado)">{{ obra.estado }}</span>
             <div class="detail__progress">
-              <div class="cx-progress" aria-hidden="true">
-                <div class="cx-progress__fill" [style.width.%]="obra.avance"></div>
-              </div>
-              <strong>{{ obra.avance }}% de avance</strong>
+              <cx-anillo [valor]="obra.avance" [tamano]="64" [etiqueta]="'Avance de ' + obra.nombre" />
+              <strong>de avance físico</strong>
             </div>
           </div>
 
