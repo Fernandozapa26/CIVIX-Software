@@ -34,6 +34,37 @@ export const routes: Routes = [
       },
     ],
   },
+  // Recuperación de contraseña: paso 1 (pedir el enlace por correo)
+  {
+    path: 'recuperar-password',
+    loadComponent: () => import('./layouts/auth-layout/auth-layout').then((m) => m.AuthLayout),
+    canActivate: [guestGuard],
+    children: [
+      {
+        path: '',
+        title: 'Recuperar contraseña',
+        loadComponent: () =>
+          import('./features/auth/recuperar-password/recuperar-password').then(
+            (m) => m.RecuperarPassword,
+          ),
+      },
+    ],
+  },
+  // Paso 2 (enlace del correo). Sin guestGuard: el enlace debe abrir aunque haya una sesión abierta.
+  {
+    path: 'restablecer-password',
+    loadComponent: () => import('./layouts/auth-layout/auth-layout').then((m) => m.AuthLayout),
+    children: [
+      {
+        path: '',
+        title: 'Nueva contraseña',
+        loadComponent: () =>
+          import('./features/auth/restablecer-password/restablecer-password').then(
+            (m) => m.RestablecerPassword,
+          ),
+      },
+    ],
+  },
   // Aplicación (requiere sesión)
   {
     path: 'app',

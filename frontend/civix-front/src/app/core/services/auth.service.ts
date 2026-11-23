@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
@@ -68,6 +68,29 @@ export class AuthService {
     return this.http
       .post<AuthResponse>(`${this.apiUrl}/register`, datos)
       .pipe(tap((respuesta) => this.guardarSesion(respuesta)));
+  }
+
+  // ---------- Recuperación de contraseña ----------
+
+  /** Pide el enlace de recuperación. La API responde igual exista o no el correo. */
+  solicitarRecuperacion(correo: string): Observable<string> {
+    return this.http
+      .post<{ mensaje: string }>(`${this.apiUrl}/olvide-password`, { correo })
+      .pipe(map((respuesta) => respuesta.mensaje));
+  }
+
+  /** Comprueba si el enlace del correo todavía sirve (responde error si venció o ya se usó). */
+  validarTokenRecuperacion(token: string): Observable<void> {
+    return this.http
+      .post<unknown>(`${this.apiUrl}/validar-token-recuperacion`, { token })
+      .pipe(map(() => undefined));
+  }
+
+  /** Guarda la nueva contraseña usando el token del enlace. */
+  restablecerPassword(token: string, password: string): Observable<string> {
+    return this.http
+      .post<{ mensaje: string }>(`${this.apiUrl}/restablecer-password`, { token, password })
+      .pipe(map((respuesta) => respuesta.mensaje));
   }
 
   /** Cierra la sesión y vuelve al login. Si la sesión venció, el login muestra un aviso. */

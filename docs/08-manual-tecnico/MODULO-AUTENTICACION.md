@@ -326,7 +326,60 @@ npm start                # http://localhost:4200 -> redirige a /login
 7. Con la API detenida, intentar iniciar sesión. Debe aparecer "No se pudo conectar con el servidor…".
 8. En `civix-backend.http`, hacer `GET /api/materiales` sin token. Debe responder **401**.
 
-## 8. Pendientes para módulos siguientes
+## 8. Recuperación de contraseña ("¿Olvidaste tu contraseña?")
+
+### Flujo
+1. En el login, el usuario pulsa **¿Olvidaste tu contraseña?** → `/recuperar-password` y escribe su correo.
+2. `POST /api/auth/olvide-password` responde **siempre el mismo mensaje**, exista o no el correo, para no revelar qué cuentas están registradas. Si el usuario existe y está activo, se le envía un correo con un enlace.
+3. El enlace abre `/restablecer-password?token=...`. La pantalla primero llama a `POST /api/auth/validar-token-recuperacion`. Si el enlace venció o ya se usó, muestra el aviso y el botón para pedir uno nuevo.
+4. El usuario escribe la nueva contraseña, con las mismas reglas del registro, y `POST /api/auth/restablecer-password` la guarda. Después inicia sesión normalmente.
+
+### Cómo funciona el token (sin tablas nuevas)
+`Services/RecuperacionPasswordService.cs` genera un token **firmado con HMAC-SHA256**. La clave de firma se deriva de `Jwt:Key`. El token contiene `idUsuario : vencimiento : sello`.
+- **Firma:** nadie puede inventar ni modificar un token.
+- **Vencimiento:** `RecuperacionPassword:ExpiracionMinutos`, 30 minutos por defecto.
+- **Sello:** es un resumen del hash de la contraseña actual. Al cambiar la contraseña, el sello deja de coincidir y **el enlace ya no sirve**, así que es de un solo uso.
+- Las comparaciones se hacen en tiempo constante, para no filtrar información por tiempos de respuesta.
+
+Si `Jwt:Key` no está configurada, la API usa una clave temporal que cambia al reiniciarse, y los enlaces pendientes dejan de servir. Configúrenla en `appsettings.Development.json`.
+
+### Protección contra abuso
+Los tres endpoints usan la política de límite de intentos `recuperacion-password`, definida en `Program.cs`: máximo 10 peticiones cada 15 minutos por IP. Al superarla, la API responde **429** con el mensaje "Demasiados intentos…".
+
+### Envío del correo (SMTP)
+`Services/EnviadorCorreo.cs` envía el correo con `System.Net.Mail`, incluido en .NET, sin paquetes extra. La configuración va en la sección `Smtp`.
+- **Sin `Smtp:Host` configurado, en desarrollo**, la API escribe el enlace en su consola (`[CIVIX] SMTP no configurado. Enlace de recuperación…`). Así se puede probar el flujo completo sin correo.
+- **Con Gmail:**
+  1. Activar la verificación en dos pasos en la cuenta.
+  2. Crear una *contraseña de aplicación* en https://myaccount.google.com/apppasswords.
+  3. Agregar en `appsettings.Development.json`, que no se sube a Git:
+
+```json
+"Smtp": {
+  "Host": "smtp.gmail.com",
+  "Puerto": 587,
+  "UsarSsl": true,
+  "Usuario": "cuenta-del-proyecto@gmail.com",
+  "Password": "la-contraseña-de-aplicación-de-16-letras",
+  "Remitente": "cuenta-del-proyecto@gmail.com"
+}
+```
+
+- `RecuperacionPassword:UrlFrontend` define a qué dirección apunta el enlace del correo. Por defecto es `http://localhost:4200`; al desplegar se cambia por la URL real.
+
+### Archivos
+- **Backend:**
+  - `Configuration/SmtpOptions.cs` y `Configuration/RecuperacionPasswordOptions.cs`
+  - `DTOs/Auth/SolicitarRecuperacionDto.cs`, `ValidarTokenRecuperacionDto.cs` y `RestablecerPasswordDto.cs`
+  - `Services/EnviadorCorreo.cs` y `Services/RecuperacionPasswordService.cs`
+  - Endpoints nuevos en `AuthController.cs`, y registros y límite de intentos en `Program.cs`.
+- **Frontend:**
+  - `features/auth/recuperar-password/*` y `features/auth/restablecer-password/*`
+  - Rutas en `app.routes.ts`.
+  - Métodos `solicitarRecuperacion`, `validarTokenRecuperacion` y `restablecerPassword` en `core/services/auth.service.ts`.
+  - Enlace en `login.html` y estilos compartidos en `_auth-form.scss`.
+
+## 9. Pendientes para módulos siguientes
 - Crear `Models/Obra.cs` y `ObrasController`, aplicando `AccesoObrasService` en cada consulta.
 - En Cotizaciones: filtrar por `ClienteId` y por obras permitidas cuando se reemplacen los datos de ejemplo.
 - En las pantallas: usar `authService.esSoloLectura()` para ocultar las acciones de edición al Cliente.
