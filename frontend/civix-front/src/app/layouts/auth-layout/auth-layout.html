@@ -1,5 +1,22 @@
 <div class="auth">
   <aside class="hero" aria-label="Presentación de CIVIX">
+    <!-- Plano decorativo: fachada de un edificio con líneas de cota -->
+    <svg class="hero__plano" viewBox="0 0 420 300" fill="none" aria-hidden="true">
+      <g class="hero__trazo" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M40 270h340" />
+        <path d="M90 270V110h120v160M210 270V60h110v210" />
+        <path d="M90 110l60-40 60 40" />
+        <path d="M110 135h30v25h-30zM160 135h30v25h-30zM110 185h30v25h-30zM160 185h30v25h-30z" />
+        <path d="M232 85h26v20h-26zM272 85h26v20h-26zM232 125h26v20h-26zM272 125h26v20h-26zM232 165h26v20h-26zM272 165h26v20h-26z" />
+        <path d="M135 270v-38h30v38M246 270v-50h48v50" />
+      </g>
+      <g class="hero__cota" stroke="currentColor" stroke-width="1" stroke-linecap="round">
+        <path d="M90 288h230M90 282v12M210 282v12M320 282v12" />
+        <path d="M345 60v210M339 60h12M339 270h12" />
+        <path d="M60 110v160M54 110h12M54 270h12" stroke-dasharray="3 4" />
+      </g>
+    </svg>
+
     <div class="marca">
       <span class="marca__logo" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -25,6 +42,7 @@
     </div>
 
     <p class="hero__pie">CIVIX · Plataforma de control de obra</p>
+
   </aside>
 
   <main class="panel">

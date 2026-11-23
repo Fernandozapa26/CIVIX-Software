@@ -26,6 +26,12 @@ export function claseEstadoObra(estado: string): string {
   return 'cx-chip cx-chip--info';
 }
 
+/** Obra pausada o suspendida: se marca con la cinta de obra en las tarjetas. */
+export function obraDetenida(estado: string): boolean {
+  const valor = normalizar(estado);
+  return valor.includes('pausa') || valor.includes('suspend');
+}
+
 /** Estados de cotización: Borrador, Aprobada, Rechazada, Anulada. */
 export function claseEstadoCotizacion(estado: string): string {
   const valor = normalizar(estado);

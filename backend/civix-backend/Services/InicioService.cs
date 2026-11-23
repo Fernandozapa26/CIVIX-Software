@@ -17,6 +17,7 @@ namespace civix_backend.Services
         private const int MaximoObras = 6;
         private const int MaximoAvances = 5;
         private const int MaximoCotizaciones = 5;
+        private const int SemanasDeActividad = 8;
 
         private readonly CivixDbContext _context;
         private readonly AccesoObrasService _accesoObras;
@@ -68,7 +69,8 @@ namespace civix_backend.Services
                         Avance = o.Avance
                     })
                     .ToListAsync(),
-                AvancesRecientes = await ObtenerAvancesRecientesAsync(avances)
+                AvancesRecientes = await ObtenerAvancesRecientesAsync(avances),
+                AvancesPorSemana = await ContarAvancesPorSemanaAsync(avances)
             };
 
             if (!EsCliente(usuario))
@@ -111,6 +113,36 @@ namespace civix_backend.Services
                 PorcentajeAvance = a.PorcentajeAvance,
                 Imagen = a.Imagenes.FirstOrDefault()
             }).ToList();
+        }
+
+        /// <summary>
+        /// Cuántos avances se registraron en cada una de las últimas semanas (lunes a domingo),
+        /// incluida la actual. Las semanas sin avances aparecen con 0.
+        /// </summary>
+        private static async Task<List<ConteoSemanaDto>> ContarAvancesPorSemanaAsync(IQueryable<Avance> avances)
+        {
+            var hoy = DateTime.Today;
+            var diasDesdeLunes = ((int)hoy.DayOfWeek + 6) % 7;
+            var lunesActual = hoy.AddDays(-diasDesdeLunes);
+            var primerLunes = lunesActual.AddDays(-7 * (SemanasDeActividad - 1));
+
+            var fechas = await avances
+                .Where(a => a.Fecha >= primerLunes)
+                .Select(a => a.Fecha)
+                .ToListAsync();
+
+            return Enumerable.Range(0, SemanasDeActividad)
+                .Select(i =>
+                {
+                    var inicio = primerLunes.AddDays(7 * i);
+                    var fin = inicio.AddDays(7);
+                    return new ConteoSemanaDto
+                    {
+                        Semana = inicio,
+                        Cantidad = fechas.Count(f => f >= inicio && f < fin)
+                    };
+                })
+                .ToList();
         }
 
         /// <summary>El Administrador ve todas; el Ingeniero solo las que creó. Sin anuladas.</summary>

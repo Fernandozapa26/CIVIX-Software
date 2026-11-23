@@ -50,6 +50,21 @@
   --cx-foco: 0 0 0 3px rgba(230, 161, 38, 0.35);
   --cx-transicion: 180ms cubic-bezier(0.2, 0, 0, 1);
   --cx-fuente: "Manrope", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Estilo "plano de obra": títulos técnicos y cifras monoespaciadas */
+  --cx-fuente-titulos: "Space Grotesk", var(--cx-fuente);
+  --cx-fuente-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* Colores que no cambian con el tema (fondo del menú, texto sobre amarillo) */
+  --cx-tinta-fija: #102a35;
+  --cx-sidebar: #102a35;
+  --cx-sidebar-activo: #294653;
+  /* Superficie secundaria (pies de modal, encabezados de tabla) */
+  --cx-superficie-2: #fafbfa;
+  --cx-tabla-cabecera: #f6f7f6;
+  --cx-topbar: rgba(255, 255, 255, 0.92);
+  /* Cuadrícula de plano del fondo */
+  --cx-cuadricula: rgba(16, 42, 53, 0.045);
+  --cx-cuadricula-mayor: rgba(16, 42, 53, 0.07);
 
   /* Alias usados por los módulos existentes (apuntan a la paleta nueva) */
   --civix-primary: var(--cx-petroleo);
@@ -157,16 +172,16 @@ a {
 }
 
 .btn-warning {
-  --bs-btn-color: var(--cx-petroleo);
+  --bs-btn-color: var(--cx-tinta-fija);
   --bs-btn-bg: var(--cx-amarillo);
   --bs-btn-border-color: var(--cx-amarillo);
-  --bs-btn-hover-color: var(--cx-petroleo);
+  --bs-btn-hover-color: var(--cx-tinta-fija);
   --bs-btn-hover-bg: var(--cx-amarillo-hover);
   --bs-btn-hover-border-color: var(--cx-amarillo-hover);
-  --bs-btn-active-color: var(--cx-petroleo);
+  --bs-btn-active-color: var(--cx-tinta-fija);
   --bs-btn-active-bg: var(--cx-amarillo-activo);
   --bs-btn-active-border-color: var(--cx-amarillo-activo);
-  --bs-btn-disabled-color: var(--cx-petroleo);
+  --bs-btn-disabled-color: var(--cx-tinta-fija);
   --bs-btn-disabled-bg: var(--cx-amarillo);
   --bs-btn-disabled-border-color: var(--cx-amarillo);
 }
@@ -253,6 +268,7 @@ a {
   .h5,
   h2,
   h3 {
+    font-family: var(--cx-fuente-titulos);
     font-size: 1rem;
     font-weight: 700;
     color: var(--cx-petroleo);
@@ -267,7 +283,7 @@ a {
 .table {
   --bs-table-color: var(--cx-texto);
   --bs-table-border-color: var(--cx-borde);
-  --bs-table-hover-bg: #f7f8f7;
+  --bs-table-hover-bg: var(--cx-superficie-2);
   --bs-table-hover-color: var(--cx-texto);
   margin-bottom: 0;
 
@@ -277,9 +293,9 @@ a {
 
   thead th,
   thead.table-light th {
-    --bs-table-bg: #f6f7f6;
+    --bs-table-bg: var(--cx-tabla-cabecera);
     --bs-table-color: var(--cx-texto-tenue);
-    background: #f6f7f6;
+    background: var(--cx-tabla-cabecera);
     color: var(--cx-texto-tenue);
     font-size: 0.72rem;
     font-weight: 700;
@@ -296,8 +312,8 @@ a {
 
   tfoot tr,
   tfoot .table-light td {
-    --bs-table-bg: #f6f7f6;
-    background: #f6f7f6;
+    --bs-table-bg: var(--cx-tabla-cabecera);
+    background: var(--cx-tabla-cabecera);
   }
 }
 
@@ -378,6 +394,24 @@ a {
   border-radius: var(--cx-radio-sm);
   border-width: 0 0 0 3px;
   animation: cx-fade-up 260ms ease both;
+}
+
+// Advertencias y errores llevan una franja tipo cinta de obra en el borde izquierdo
+.alert-warning,
+.alert-danger {
+  border-left-width: 0;
+  padding-left: 1.35rem;
+  background-image: var(--cx-cinta-alerta);
+  background-repeat: no-repeat;
+  background-size: 6px 100%;
+}
+
+.alert-warning {
+  --cx-cinta-alerta: repeating-linear-gradient(-45deg, var(--cx-amarillo) 0 5px, var(--cx-tinta-fija) 5px 10px);
+}
+
+.alert-danger {
+  --cx-cinta-alerta: repeating-linear-gradient(-45deg, var(--cx-rojo) 0 5px, transparent 5px 10px);
 }
 
 .alert-success {
@@ -461,8 +495,26 @@ a {
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem 1.5rem;
+  position: relative;
   margin-bottom: 1.75rem;
+  padding-bottom: 1.35rem;
   animation: cx-fade-up 320ms ease both;
+
+  // Línea de cota (como en un plano): trazo fino con remates y un tramo amarillo
+  &::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 9px;
+    background:
+      linear-gradient(var(--cx-amarillo), var(--cx-amarillo)) left center / 72px 3px no-repeat,
+      linear-gradient(var(--cx-borde-fuerte), var(--cx-borde-fuerte)) left center / 100% 1px no-repeat,
+      linear-gradient(var(--cx-borde-fuerte), var(--cx-borde-fuerte)) left center / 1px 100% no-repeat,
+      linear-gradient(var(--cx-borde-fuerte), var(--cx-borde-fuerte)) right center / 1px 100% no-repeat;
+    pointer-events: none;
+  }
 
   // El texto cede espacio para que las acciones se queden a la derecha
   > div:first-child {
@@ -477,9 +529,10 @@ a {
   gap: 0.5rem;
   margin: 0 0 0.4rem;
   color: var(--cx-amarillo-texto);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-family: var(--cx-fuente-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 
   &::before {
@@ -494,9 +547,10 @@ a {
 .page-title {
   margin: 0 0 0.3rem;
   color: var(--cx-petroleo);
-  font-size: clamp(1.6rem, 2.4vw, 2rem);
-  font-weight: 800;
-  letter-spacing: -0.025em;
+  font-family: var(--cx-fuente-titulos);
+  font-size: clamp(1.6rem, 2.4vw, 2.05rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.15;
 }
 
@@ -562,12 +616,12 @@ a {
 .btn-civix {
   background: var(--cx-amarillo);
   border-color: var(--cx-amarillo);
-  color: var(--cx-petroleo);
+  color: var(--cx-tinta-fija);
 
   &:hover:not(:disabled) {
     background: var(--cx-amarillo-hover);
     border-color: var(--cx-amarillo-hover);
-    color: var(--cx-petroleo);
+    color: var(--cx-tinta-fija);
   }
 }
 
@@ -665,8 +719,10 @@ a {
   h2,
   h3 {
     margin: 0;
+    font-family: var(--cx-fuente-titulos);
     font-size: 1rem;
     font-weight: 700;
+    letter-spacing: -0.01em;
   }
 }
 
@@ -761,6 +817,69 @@ a {
   background: var(--cx-verde);
 }
 
+/* Cifras con fuente monoespaciada (montos, porcentajes, conteos) */
+.cx-num {
+  font-family: var(--cx-fuente-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Cinta de obra: franja diagonal amarillo/petróleo para llamar la atención */
+.cx-cinta {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--cx-amarillo) 0 8px,
+    var(--cx-tinta-fija) 8px 16px
+  );
+}
+
+/* Fondo con cuadrícula de plano (sobre superficies oscuras) */
+.cx-plano-oscuro {
+  background-color: var(--cx-tinta-fija);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size:
+    120px 120px,
+    120px 120px,
+    24px 24px,
+    24px 24px;
+  background-position: -1px -1px;
+}
+
+/* Leyenda de las gráficas */
+.cx-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--cx-texto-tenue);
+  }
+
+  strong {
+    color: var(--cx-texto);
+    font-family: var(--cx-fuente-mono);
+    font-weight: 600;
+  }
+}
+
+.cx-leyenda__punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--color, var(--cx-pizarra));
+}
+
 /* Buscador con icono */
 .cx-search {
   position: relative;
@@ -834,8 +953,8 @@ a {
 
   &.is-active,
   &.activo {
-    background: var(--cx-petroleo);
-    color: var(--cx-blanco);
+    background: var(--cx-sidebar);
+    color: #fff;
   }
 
   &:focus-visible {
@@ -938,8 +1057,9 @@ a {
 
   h2 {
     margin: 0;
+    font-family: var(--cx-fuente-titulos);
     font-size: 1.15rem;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   p {
@@ -976,7 +1096,7 @@ a {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--cx-borde);
   border-radius: 0 0 14px 14px;
-  background: #fafbfa;
+  background: var(--cx-superficie-2);
 }
 
 /* Ventana de confirmación (eliminar, anular…) */
@@ -1046,6 +1166,32 @@ fieldset.cx-modal__section {
   }
 }
 
+/* Fondo del área de trabajo: papel de plano con cuadrícula menor (24 px) y mayor (120 px) */
+.app-layout {
+  background-color: var(--cx-cemento);
+  background-image:
+    linear-gradient(var(--cx-cuadricula-mayor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cx-cuadricula-mayor) 1px, transparent 1px),
+    linear-gradient(var(--cx-cuadricula) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cx-cuadricula) 1px, transparent 1px);
+  background-size:
+    120px 120px,
+    120px 120px,
+    24px 24px,
+    24px 24px;
+  background-attachment: fixed;
+  transition: background-color 240ms ease;
+}
+
+/* Botón de tema (sol / luna) del encabezado */
+.topbar-tema i {
+  transition: transform 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.topbar-tema:hover i {
+  transform: rotate(-20deg);
+}
+
 /* Encabezado del layout principal: migas de pan, botones de icono y perfil */
 .breadcrumbs {
   flex: 1;
@@ -1100,7 +1246,7 @@ fieldset.cx-modal__section {
   height: 40px;
   border: 1px solid var(--cx-borde);
   border-radius: 8px;
-  background: #fff;
+  background: var(--cx-blanco);
   color: var(--cx-pizarra);
   font-size: 1.05rem;
   transition:
@@ -1187,7 +1333,7 @@ fieldset.cx-modal__section {
     &:focus {
       outline: none;
       border-color: var(--cx-amarillo);
-      background: #fff;
+      background: var(--cx-blanco);
       box-shadow: var(--cx-foco);
     }
   }
@@ -1203,7 +1349,7 @@ fieldset.cx-modal__section {
   padding: 0.35rem;
   border: 1px solid var(--cx-borde);
   border-radius: 10px;
-  background: #fff;
+  background: var(--cx-blanco);
   box-shadow: var(--cx-sombra-hover);
   list-style: none;
   animation: cx-modal-in 160ms ease both;
@@ -1348,5 +1494,184 @@ fieldset.cx-modal__section {
     > * {
       flex: 1;
     }
+  }
+}
+
+/* -------------------------------------------------------------------------
+   6. TEMA OSCURO
+   Se activa con data-tema="oscuro" en el layout principal (botón de la luna
+   en el encabezado). Solo cambia variables: los componentes no se tocan.
+   ------------------------------------------------------------------------- */
+
+.app-layout[data-tema="oscuro"] {
+  color-scheme: dark;
+
+  --cx-cemento: #0a1a21;
+  --cx-blanco: #10242d;
+  --cx-superficie-2: #0d1f27;
+  --cx-tabla-cabecera: #0d1f27;
+  --cx-topbar: rgba(10, 26, 33, 0.88);
+  --cx-petroleo: #eef4f6;
+  --cx-pizarra: #9cc0cf;
+  --cx-texto: #d6e1e5;
+  --cx-texto-secundario: #8399a3;
+  --cx-texto-tenue: #9aafb8;
+  --cx-borde: #1f3a46;
+  --cx-borde-fuerte: #2c4c5a;
+  --cx-gris-suave: #1a333e;
+  --cx-azul-suave: #173847;
+  --cx-verde-suave: #12372a;
+  --cx-rojo-suave: #3b2024;
+  --cx-amarillo-suave: #3a2d12;
+  --cx-amarillo-texto: #f1b850;
+  --cx-sidebar: #0c2029;
+  --cx-sidebar-activo: #1d3a47;
+  --cx-cuadricula: rgba(255, 255, 255, 0.025);
+  --cx-cuadricula-mayor: rgba(255, 255, 255, 0.045);
+  --cx-sombra: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --cx-sombra-hover: 0 12px 28px -10px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --cx-sombra-modal: 0 24px 60px -12px rgba(0, 0, 0, 0.7);
+
+  --bs-body-color: var(--cx-texto);
+  --bs-body-bg: var(--cx-cemento);
+  --bs-emphasis-color: var(--cx-petroleo);
+  --bs-secondary-color: var(--cx-texto-tenue);
+  --bs-secondary-bg: var(--cx-gris-suave);
+  --bs-tertiary-bg: var(--cx-superficie-2);
+  --bs-border-color: var(--cx-borde);
+  --bs-link-color: var(--cx-pizarra);
+  --bs-link-color-rgb: 156, 192, 207;
+  --bs-link-hover-color: var(--cx-petroleo);
+  --bs-link-hover-color-rgb: 238, 244, 246;
+  --bs-heading-color: var(--cx-petroleo);
+
+  /* Los alias se vuelven a declarar para que tomen los colores del tema oscuro */
+  --civix-primary: var(--cx-petroleo);
+  --civix-secondary: var(--cx-pizarra);
+  --civix-accent: var(--cx-amarillo);
+  --civix-background: var(--cx-cemento);
+  --civix-white: var(--cx-blanco);
+  --civix-text: var(--cx-texto);
+  --civix-text-muted: var(--cx-texto-tenue);
+  --civix-border: var(--cx-borde);
+  --civix-sidebar: var(--cx-sidebar);
+  --civix-bg: var(--cx-cemento);
+  --civix-card: var(--cx-blanco);
+  --civix-muted: var(--cx-texto-tenue);
+  --civix-success: var(--cx-verde);
+  --civix-info: var(--cx-pizarra);
+  --civix-naranja-texto: var(--cx-amarillo-texto);
+  --civix-tinta: var(--cx-petroleo);
+  --civix-texto-suave: var(--cx-texto-tenue);
+  --civix-fondo: var(--cx-cemento);
+  --civix-borde: var(--cx-borde);
+
+  .bg-white,
+  .bg-light,
+  .table-light {
+    --bs-table-bg: var(--cx-tabla-cabecera);
+    background-color: var(--cx-blanco) !important;
+  }
+
+  .text-dark,
+  .text-body {
+    color: var(--cx-texto) !important;
+  }
+
+  .card,
+  .list-group,
+  .dropdown-menu {
+    --bs-card-bg: var(--cx-blanco);
+    --bs-card-cap-bg: var(--cx-blanco);
+    --bs-list-group-bg: var(--cx-blanco);
+    --bs-list-group-color: var(--cx-texto);
+    --bs-list-group-border-color: var(--cx-borde);
+    --bs-dropdown-bg: var(--cx-blanco);
+  }
+
+  .table {
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+  }
+
+  .form-control,
+  .form-select {
+    &::placeholder {
+      color: #6f8691;
+    }
+
+    &:disabled {
+      background-color: var(--cx-superficie-2);
+    }
+  }
+
+  .btn-outline-dark,
+  .btn-outline-secondary {
+    --bs-btn-hover-bg: var(--cx-gris-suave);
+    --bs-btn-active-bg: var(--cx-gris-suave);
+  }
+
+  .btn-light {
+    --bs-btn-bg: var(--cx-gris-suave);
+    --bs-btn-border-color: var(--cx-borde);
+    --bs-btn-color: var(--cx-texto);
+    --bs-btn-hover-bg: var(--cx-borde-fuerte);
+    --bs-btn-hover-color: var(--cx-petroleo);
+  }
+
+  .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+  }
+
+  // Textos de estado con más luz para leerse sobre fondos oscuros
+  .cx-chip {
+    color: #b9c8ce;
+  }
+
+  .cx-chip--success,
+  .badge.text-bg-success {
+    color: #7fd0a2 !important;
+  }
+
+  .cx-chip--danger,
+  .invalid-feedback {
+    color: #ef9a9a !important;
+  }
+
+  .cx-chip--muted,
+  .badge.text-bg-secondary {
+    color: #a9b8be !important;
+  }
+
+  .alert-success {
+    --bs-alert-color: #9fdcb9;
+  }
+
+  .alert-danger {
+    --bs-alert-color: #f2b4b4;
+  }
+
+  .alert-warning {
+    --bs-alert-color: #f3cf8c;
+  }
+
+  .alert-info {
+    --bs-alert-color: #b7d3de;
+  }
+
+  .btn-outline-danger,
+  .cx-btn--danger {
+    --bs-btn-color: #ef9a9a;
+    --bs-btn-border-color: #5a2f33;
+    border-color: #5a2f33;
+    color: #ef9a9a;
+  }
+
+  .cx-btn--danger:hover:not(:disabled) {
+    color: #fff;
+  }
+
+  .cx-modal-backdrop {
+    background: rgba(2, 8, 11, 0.65);
   }
 }
