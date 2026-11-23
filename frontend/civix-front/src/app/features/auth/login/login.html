@@ -1,7 +1,9 @@
 <header class="encabezado">
   <p class="etiqueta">Acceso seguro</p>
   <h1 class="titulo">Bienvenido a CIVIX</h1>
-  <p class="subtitulo">Ingresa con tu cuenta o usa uno de los perfiles de prueba.</p>
+  <p class="subtitulo">
+    Ingresa con tu cuenta@if (cuentasPrueba.length > 0) { o usa uno de los perfiles de prueba}.
+  </p>
 </header>
 
 @if (sesionExpirada && !error()) {

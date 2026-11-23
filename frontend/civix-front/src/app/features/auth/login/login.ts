@@ -5,21 +5,8 @@ import { finalize } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { AuthService, RUTA_INICIO } from '../../../core/services/auth.service';
+import { CuentaPrueba } from '../../../core/models/auth.models';
 import { obtenerMensajeError } from '../../../core/utils/http-error';
-
-interface CuentaPrueba {
-  rol: string;
-  icono: 'escudo' | 'casco' | 'usuario';
-  correo: string;
-  password: string;
-}
-
-/** Cuentas creadas por database/scripts/002_datos_prueba_auth.sql. */
-const CUENTAS_PRUEBA: readonly CuentaPrueba[] = [
-  { rol: 'Administrador', icono: 'escudo', correo: 'admin@civix.co', password: 'Admin123' },
-  { rol: 'Ingeniero', icono: 'casco', correo: 'ingeniero@civix.co', password: 'Ingeniero123' },
-  { rol: 'Cliente', icono: 'usuario', correo: 'cliente@civix.co', password: 'Cliente123' },
-];
 
 @Component({
   selector: 'app-login',
@@ -34,7 +21,8 @@ export class Login {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly cuentasPrueba = environment.mostrarCuentasPrueba ? CUENTAS_PRUEBA : [];
+  /** Solo tiene cuentas en desarrollo: environment.prod.ts la deja vacía. */
+  protected readonly cuentasPrueba = environment.cuentasPrueba;
   protected readonly sesionExpirada = this.route.snapshot.queryParamMap.has('sesionExpirada');
   protected readonly enviando = signal(false);
   protected readonly error = signal<string | null>(null);

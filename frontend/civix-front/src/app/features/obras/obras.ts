@@ -1,22 +1,20 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { CurrencyPipe } from '@angular/common';
+import { AsyncPipe, CurrencyPipe } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AuthService } from '../../core/services/auth.service';
 import { claseEstadoObra } from '../../core/utils/estados';
-import { environment } from '../../../environments/environment';
+import { ImagenProtegidaPipe } from '../../core/pipes/imagen-protegida.pipe';
 import { obtenerMensajeError } from '../../core/utils/http-error';
 import { ObrasService } from './obras.service';
 import { Obra, ObraPayload, UsuarioOpcion } from './obra.model';
 
-/** Dirección del servidor sin "/api", para armar la URL de las fotos (/uploads/...). */
-const URL_SERVIDOR = environment.apiUrl.replace(/\/api\/?$/, '');
 
 @Component({
   selector: 'app-obras',
-  imports: [ReactiveFormsModule, CurrencyPipe],
+  imports: [ReactiveFormsModule, CurrencyPipe, AsyncPipe, ImagenProtegidaPipe],
   templateUrl: './obras.html',
   styleUrl: './obras.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -176,9 +174,6 @@ export class Obras implements OnInit {
     this.mostrarFormulario.set(true);
   }
 
-  protected urlImagen(ruta: string): string {
-    return ruta.startsWith('http') ? ruta : `${URL_SERVIDOR}${ruta}`;
-  }
 
   /** True cuando el campo no es válido y el usuario ya lo tocó (para mostrar el mensaje). */
   protected invalido(control: AbstractControl): boolean {

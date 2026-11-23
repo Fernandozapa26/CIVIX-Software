@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
+import { AsyncPipe } from '@angular/common';
 
 import { environment } from '../../../environments/environment';
 import { ContadorDirective } from '../../core/directives/contador.directive';
+import { ImagenProtegidaPipe } from '../../core/pipes/imagen-protegida.pipe';
 import { ROLES } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
 import { claseEstadoObra } from '../../core/utils/estados';
@@ -11,8 +13,6 @@ import { obtenerMensajeError } from '../../core/utils/http-error';
 import { formatearFechaCorta, formatearPesos } from '../cotizaciones/cotizaciones.service';
 import { ResumenInicio } from './inicio.models';
 
-/** Dirección del servidor sin "/api", para armar la URL de las fotos (/uploads/...). */
-const URL_SERVIDOR = environment.apiUrl.replace(/\/api\/?$/, '');
 
 /** Elemento de la línea de "Actividad reciente" (avances y cotizaciones reales). */
 interface Actividad {
@@ -34,7 +34,7 @@ interface Actividad {
  */
 @Component({
   selector: 'app-inicio',
-  imports: [RouterLink, ContadorDirective],
+  imports: [RouterLink, AsyncPipe, ContadorDirective, ImagenProtegidaPipe],
   templateUrl: './inicio.html',
   styleUrl: './inicio.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -168,9 +168,6 @@ export class Inicio {
     });
   }
 
-  urlImagen(ruta: string): string {
-    return ruta.startsWith('http') ? ruta : `${URL_SERVIDOR}${ruta}`;
-  }
 
   /** Porcentaje (0-100) de una parte respecto al total, para las barras del resumen. */
   porcentaje(parte: number, total: number): number {

@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.IO;
-using System.Linq;
 using civix_backend.Data;
 using civix_backend.DTOs.Avances;
 using civix_backend.Models;
@@ -17,14 +14,14 @@ namespace civix_backend.Controllers;
 public class AvancesController : ControllerBase
 {
     private readonly CivixDbContext _context;
-    private readonly IWebHostEnvironment _env;
     private readonly AccesoObrasService _accesoObras;
+    private readonly ImagenesAvanceService _imagenes;
 
-    public AvancesController(CivixDbContext context, IWebHostEnvironment env, AccesoObrasService accesoObras)
+    public AvancesController(CivixDbContext context, AccesoObrasService accesoObras, ImagenesAvanceService imagenes)
     {
         _context = context;
-        _env = env;
         _accesoObras = accesoObras;
+        _imagenes = imagenes;
     }
 
     [HttpGet]
@@ -39,7 +36,7 @@ public class AvancesController : ControllerBase
         if (permitidas is not null)
             query = query.Where(a => permitidas.Contains(a.ObraId));
 
-        var avances = await query.OrderByDescending(a => a.Fecha).ToListAsync();
+        var avances = await query.OrderByDescending(a => a.Fecha).ThenByDescending(a => a.Id).ToListAsync();
 
         // Nombre de quien registró cada avance (una sola consulta para todos).
         var nombres = await NombresDeUsuariosAsync(avances.Select(a => a.RegistradoPorUsuarioId));
@@ -61,34 +58,25 @@ public class AvancesController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = RolesSistema.Gestion)]
-    public async Task<ActionResult<Avance>> CrearAvance([FromBody] Avance avance)
+    public async Task<ActionResult<AvanceDto>> CrearAvance([FromBody] GuardarAvanceDto dto)
     {
-        if (avance.ObraId <= 0)
-            return BadRequest("La obra es obligatoria.");
-
-        var obraExiste = await _context.Obras.AnyAsync(o => o.Id == avance.ObraId);
-        if (!obraExiste)
-            return BadRequest("La obra indicada no existe.");
-
-        if (!await _accesoObras.PuedeAccederAObraAsync(User, avance.ObraId))
-            return Forbid();
-
-        if (string.IsNullOrWhiteSpace(avance.Descripcion))
-            return BadRequest("La descripcion es obligatoria.");
-        if (avance.PorcentajeAvance.HasValue && (avance.PorcentajeAvance < 0 || avance.PorcentajeAvance > 100))
-            return BadRequest("El porcentaje debe estar entre 0 y 100.");
-
-        if (avance.Fecha == default)
-            avance.Fecha = DateTime.Today;
-        else
-            avance.Fecha = NormalizarFecha(avance.Fecha);
-        if (avance.Imagenes is null)
-            avance.Imagenes = new();
+        var error = await ValidarAsync(dto);
+        if (error is not null) return error;
 
         var usuarioId = AccesoObrasService.ObtenerUsuarioId(User);
         if (usuarioId is null)
             return Unauthorized("No se pudo identificar al usuario autenticado.");
-        avance.RegistradoPorUsuarioId = usuarioId.Value;
+
+        var avance = new Avance
+        {
+            ObraId = dto.ObraId,
+            Fecha = dto.Fecha is null || dto.Fecha == default ? DateTime.Today : NormalizarFecha(dto.Fecha.Value),
+            Descripcion = dto.Descripcion.Trim(),
+            PorcentajeAvance = dto.PorcentajeAvance,
+            Imagenes = dto.Imagenes ?? new(),
+            // Lo asigna el servidor: no se acepta desde el cuerpo de la petición.
+            RegistradoPorUsuarioId = usuarioId.Value
+        };
 
         _context.Avances.Add(avance);
         await _context.SaveChangesAsync();
@@ -96,46 +84,36 @@ public class AvancesController : ControllerBase
         await RecalcularAvanceObra(avance.ObraId);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(ObtenerAvance), new { id = avance.Id }, avance);
+        var nombres = await NombresDeUsuariosAsync(new[] { avance.RegistradoPorUsuarioId });
+        return CreatedAtAction(nameof(ObtenerAvance), new { id = avance.Id },
+            AvanceDto.Desde(avance, nombres.GetValueOrDefault(avance.RegistradoPorUsuarioId)));
     }
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = RolesSistema.Gestion)]
-    public async Task<IActionResult> ActualizarAvance(int id, [FromBody] Avance avance)
+    public async Task<IActionResult> ActualizarAvance(int id, [FromBody] GuardarAvanceDto dto)
     {
-        if (avance.ObraId <= 0)
-            return BadRequest("La obra es obligatoria.");
-
-        var obraExiste = await _context.Obras.AnyAsync(o => o.Id == avance.ObraId);
-        if (!obraExiste)
-            return BadRequest("La obra indicada no existe.");
-
-        if (!await _accesoObras.PuedeAccederAObraAsync(User, avance.ObraId))
-            return Forbid();
-
-        if (string.IsNullOrWhiteSpace(avance.Descripcion))
-            return BadRequest("La descripcion es obligatoria.");
-        if (avance.PorcentajeAvance.HasValue && (avance.PorcentajeAvance < 0 || avance.PorcentajeAvance > 100))
-            return BadRequest("El porcentaje debe estar entre 0 y 100.");
-
         var existente = await _context.Avances.FindAsync(id);
         if (existente is null) return NotFound();
         if (!await _accesoObras.PuedeAccederAObraAsync(User, existente.ObraId))
             return Forbid();
 
+        var error = await ValidarAsync(dto);
+        if (error is not null) return error;
+
         var obraAnteriorId = existente.ObraId;
 
-        existente.ObraId = avance.ObraId;
-        existente.Fecha = avance.Fecha == default ? existente.Fecha : NormalizarFecha(avance.Fecha);
-        existente.Descripcion = avance.Descripcion;
-        existente.PorcentajeAvance = avance.PorcentajeAvance;
-        existente.Imagenes = avance.Imagenes ?? new();
+        existente.ObraId = dto.ObraId;
+        existente.Fecha = dto.Fecha is null || dto.Fecha == default ? existente.Fecha : NormalizarFecha(dto.Fecha.Value);
+        existente.Descripcion = dto.Descripcion.Trim();
+        existente.PorcentajeAvance = dto.PorcentajeAvance;
+        existente.Imagenes = dto.Imagenes ?? new();
         // RegistradoPorUsuarioId no se cambia: queda el usuario que registró el avance.
 
         await _context.SaveChangesAsync();
 
-        await RecalcularAvanceObra(avance.ObraId);
-        if (obraAnteriorId != avance.ObraId)
+        await RecalcularAvanceObra(dto.ObraId);
+        if (obraAnteriorId != dto.ObraId)
             await RecalcularAvanceObra(obraAnteriorId);
         await _context.SaveChangesAsync();
 
@@ -152,32 +130,14 @@ public class AvancesController : ControllerBase
             return Forbid();
 
         var obraId = avance.ObraId;
-
-        foreach (var imagen in avance.Imagenes ?? new List<string>())
-        {
-            if (!imagen.StartsWith("/uploads/avances/", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            var nombreArchivo = Path.GetFileName(imagen);
-            if (string.IsNullOrWhiteSpace(nombreArchivo))
-                continue;
-
-            var carpeta = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "avances");
-            var ruta = Path.Combine(carpeta, nombreArchivo);
-
-            try
-            {
-                if (System.IO.File.Exists(ruta))
-                    System.IO.File.Delete(ruta);
-            }
-            catch
-            {
-                // No interrumpir la eliminación del avance si falla el borrado del archivo.
-            }
-        }
+        var imagenes = avance.Imagenes ?? new List<string>();
 
         _context.Avances.Remove(avance);
         await _context.SaveChangesAsync();
+
+        // Los archivos se borran después de confirmar el borrado en la base.
+        foreach (var imagen in imagenes)
+            _imagenes.Eliminar(imagen);
 
         await RecalcularAvanceObra(obraId);
         await _context.SaveChangesAsync();
@@ -185,33 +145,95 @@ public class AvancesController : ControllerBase
         return NoContent();
     }
 
-    // Subida de imagenes. Devuelve la URL relativa que puede guardarse en Avance.Imagenes.
+    /// <summary>
+    /// Subida de imágenes. Devuelve la ruta que debe enviarse en Imagenes al crear o editar el avance.
+    /// </summary>
     [HttpPost("imagenes")]
     [Authorize(Roles = RolesSistema.Gestion)]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(20_000_000)]
+    [RequestSizeLimit(ImagenesAvanceService.TamanoMaximoBytes + 64 * 1024)]
     public async Task<ActionResult<object>> SubirImagen([FromForm] IFormFile archivo)
     {
-        if (archivo is null || archivo.Length == 0)
-            return BadRequest("Archivo vacio.");
+        var (ruta, error) = await _imagenes.GuardarAsync(archivo);
+        if (error is not null)
+            return BadRequest(new { Mensaje = error });
 
-        var extensionesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-        var ext = Path.GetExtension(archivo.FileName).ToLowerInvariant();
-        if (!extensionesPermitidas.Contains(ext))
-            return BadRequest("Formato de imagen no permitido.");
+        return Ok(new { url = ruta });
+    }
 
-        var carpeta = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "avances");
-        Directory.CreateDirectory(carpeta);
+    /// <summary>
+    /// GET /api/avances/imagenes/{nombre} — entrega una foto solo si el usuario tiene acceso
+    /// a la obra del avance que la contiene. Una foto recién subida que todavía no está en
+    /// ningún avance solo la puede ver un Administrador o Ingeniero (quien la está adjuntando).
+    /// </summary>
+    [HttpGet("imagenes/{nombre}")]
+    public async Task<IActionResult> ObtenerImagen(string nombre)
+    {
+        if (!ImagenesAvanceService.EsNombreValido(nombre))
+            return NotFound();
 
-        var nombreArchivo = $"{Guid.NewGuid()}{ext}";
-        var rutaCompleta = Path.Combine(carpeta, nombreArchivo);
-        using (var stream = System.IO.File.Create(rutaCompleta))
+        var archivo = _imagenes.BuscarArchivo(nombre);
+        if (archivo is null)
+            return NotFound();
+
+        if (!AccesoObrasService.EsAdministrador(User))
         {
-            await archivo.CopyToAsync(stream);
+            // El nombre ya se validó (GUID + extensión), así que no contiene comodines de LIKE.
+            var patron = "%" + ImagenesAvanceService.PrefijoRuta + nombre + "%";
+            var obrasConLaImagen = await _context.Database
+                .SqlQuery<int>($"SELECT ObraId AS Value FROM dbo.AvancesObra WHERE Imagenes LIKE {patron}")
+                .ToListAsync();
+
+            bool permitido;
+            if (obrasConLaImagen.Count == 0)
+            {
+                permitido = User.IsInRole(RolesSistema.Ingeniero);
+            }
+            else
+            {
+                var permitidas = await _accesoObras.ObtenerObrasPermitidasAsync(User) ?? new List<int>();
+                permitido = obrasConLaImagen.Any(permitidas.Contains);
+            }
+
+            // 404 en vez de 403 para no revelar qué fotos existen.
+            if (!permitido)
+                return NotFound();
         }
 
-        var url = $"/uploads/avances/{nombreArchivo}";
-        return Ok(new { url });
+        Response.Headers.CacheControl = "private, max-age=3600";
+        Response.Headers.XContentTypeOptions = "nosniff";
+        return PhysicalFile(archivo, ImagenesAvanceService.TipoContenido(nombre));
+    }
+
+    /// <summary>
+    /// Validaciones comunes de crear y editar. Devuelve null si todo está bien.
+    /// (Los atributos de GuardarAvanceDto ya validan obra obligatoria, descripción y porcentaje.)
+    /// </summary>
+    private async Task<ActionResult?> ValidarAsync(GuardarAvanceDto dto)
+    {
+        var obraExiste = await _context.Obras.AnyAsync(o => o.Id == dto.ObraId);
+        if (!obraExiste)
+            return BadRequest(new { Mensaje = "La obra indicada no existe." });
+
+        if (!await _accesoObras.PuedeAccederAObraAsync(User, dto.ObraId))
+            return Forbid();
+
+        if (string.IsNullOrWhiteSpace(dto.Descripcion))
+            return BadRequest(new { Mensaje = "La descripcion es obligatoria." });
+
+        var imagenes = dto.Imagenes ?? new List<string>();
+        if (imagenes.Count > ImagenesAvanceService.MaximoImagenesPorAvance)
+            return BadRequest(new { Mensaje = $"Un avance admite como máximo {ImagenesAvanceService.MaximoImagenesPorAvance} fotos." });
+
+        // Solo se aceptan rutas devueltas por POST /api/avances/imagenes y que existan en el servidor.
+        foreach (var ruta in imagenes)
+        {
+            var nombre = ImagenesAvanceService.NombreDesdeRuta(ruta);
+            if (nombre is null || _imagenes.BuscarArchivo(nombre) is null)
+                return BadRequest(new { Mensaje = "Una de las imágenes no es válida. Vuelve a subirla." });
+        }
+
+        return null;
     }
 
     /// <summary>Diccionario Id → Nombre de los usuarios indicados.</summary>

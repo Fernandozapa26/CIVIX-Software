@@ -114,12 +114,12 @@
                 @for (img of avance.imagenes; track img; let n = $index) {
                   <a
                     class="cx-photo"
-                    [href]="urlImagen(img)"
+                    [attr.href]="img | imagenProtegida | async"
                     target="_blank"
                     rel="noopener"
                     [attr.aria-label]="'Abrir foto ' + (n + 1) + ' del avance en una pestaña nueva'"
                   >
-                    <img [src]="urlImagen(img)" [alt]="'Foto ' + (n + 1) + ' del avance de ' + nombreObra(avance.obraId)" loading="lazy" />
+                    <img [attr.src]="img | imagenProtegida | async" [alt]="'Foto ' + (n + 1) + ' del avance de ' + nombreObra(avance.obraId)" loading="lazy" />
                   </a>
                 }
               </div>
@@ -267,7 +267,7 @@
               <div class="timeline__gallery mt-3">
                 @for (img of imagenes(); track img; let n = $index) {
                   <div class="preview cx-photo">
-                    <img [src]="urlImagen(img)" [alt]="'Foto ' + (n + 1) + ' adjunta'" />
+                    <img [attr.src]="img | imagenProtegida | async" [alt]="'Foto ' + (n + 1) + ' adjunta'" />
                     <button
                       type="button"
                       class="preview__remove"

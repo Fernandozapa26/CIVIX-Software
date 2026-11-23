@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AsyncPipe } from '@angular/common';
 
 import { Observable, firstValueFrom } from 'rxjs';
 import { Avance, AvancePayload } from './avance.model';
@@ -7,15 +8,14 @@ import { AvancesService } from './avances.service';
 import { ObrasService } from '../obras/obras.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Obra } from '../obras/obra.model';
-import { environment } from '../../../environments/environment';
+import { ImagenProtegidaPipe } from '../../core/pipes/imagen-protegida.pipe';
+import { obtenerMensajeError } from '../../core/utils/http-error';
 import { claseEstadoObra } from '../../core/utils/estados';
 
-/** Dirección del servidor sin "/api", para armar la URL de las fotos (/uploads/...). */
-const URL_SERVIDOR = environment.apiUrl.replace(/\/api\/?$/, '');
 
 @Component({
   selector: 'app-avances',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, AsyncPipe, ImagenProtegidaPipe],
   templateUrl: './avances.html',
   styleUrl: './avances.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -156,8 +156,9 @@ export class Avances implements OnInit {
         this.imagenes.update((prev) => [...prev, ...urls]);
         this.subiendo.set(false);
       })
-      .catch(() => {
-        this.error.set('No se pudieron subir algunas imágenes.');
+      .catch((error: unknown) => {
+        // La API explica el motivo (formato, tamaño, archivo que no es imagen...).
+        this.error.set(obtenerMensajeError(error, 'No se pudieron subir algunas imágenes.'));
         this.subiendo.set(false);
       });
   }
@@ -251,9 +252,6 @@ export class Avances implements OnInit {
       .join('');
   }
 
-  protected urlImagen(ruta: string): string {
-    return ruta.startsWith('http') ? ruta : `${URL_SERVIDOR}${ruta}`;
-  }
 
   /** Día y mes por separado para el marcador de la línea de tiempo. */
   protected partesFecha(fecha: string): { dia: string; mes: string; anio: string } {

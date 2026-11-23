@@ -66,7 +66,7 @@
           <!-- Portada: foto del avance más reciente o, si no hay fotos, un encabezado gráfico -->
           <div class="project-card__cover" [class.project-card__cover--photo]="!!obra.imagenPortada">
             @if (obra.imagenPortada) {
-              <img [src]="urlImagen(obra.imagenPortada)" [alt]="'Foto reciente de ' + obra.nombre" loading="lazy" />
+              <img [attr.src]="obra.imagenPortada | imagenProtegida | async" [alt]="'Foto reciente de ' + obra.nombre" loading="lazy" />
             } @else {
               <i class="bi bi-buildings" aria-hidden="true"></i>
             }
@@ -378,8 +378,8 @@
 
         <div class="cx-modal__body">
           @if (obra.imagenPortada) {
-            <a class="cx-photo detail__photo" [href]="urlImagen(obra.imagenPortada)" target="_blank" rel="noopener">
-              <img [src]="urlImagen(obra.imagenPortada)" [alt]="'Foto reciente de ' + obra.nombre" />
+            <a class="cx-photo detail__photo" [attr.href]="obra.imagenPortada | imagenProtegida | async" target="_blank" rel="noopener">
+              <img [attr.src]="obra.imagenPortada | imagenProtegida | async" [alt]="'Foto reciente de ' + obra.nombre" />
             </a>
           }
 
